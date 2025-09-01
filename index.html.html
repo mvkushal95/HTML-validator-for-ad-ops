@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>CM360 Zip Creative Validator</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.7.1/jszip.min.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; background: #f7f7f7; }
+    h1 { color: #333; }
+    input[type="file"] { margin-top: 10px; }
+    .results { margin-top: 20px; padding: 15px; background: #fff; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+    .pass { color: green; font-weight: bold; }
+    .fail { color: red; font-weight: bold; }
+    p { margin: 5px 0; }
+    img { max-width: 400px; display: block; margin: 5px 0; border: 1px solid #ccc; }
+  </style>
+</head>
+<body>
+<h1>CM360 Zip Creative Validator</h1>
+<input type="file" id="zipInput" accept=".zip" />
+<div class="results" id="results"></div>
+
+<script>
+document.getElementById('zipInput').addEventListener('change', function(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const resultsDiv = document.getElementById("results");
+  resultsDiv.innerHTML = "Processing zip...";
+
+  JSZip.loadAsync(file).then(zip => {
+    let htmlFileName = Object.keys(zip.files).find(name => /index\.html$/i.test(name));
+    if (!htmlFileName) {
+      resultsDiv.innerHTML = "<p class='fail'>✘ No index.html found in zip</p>";
+      return;
+    }
+
+    zip.file(htmlFileName).async("string").then(htmlContent => {
+      validateCreative(htmlContent, zip);
+    });
+  }).catch(err => {
+    resultsDiv.innerHTML = `<p class='fail'>✘ Error reading zip: ${err.message}</p>`;
+  });
+});
+
+function validateCreative(html, zip) {
+  const resultsDiv = document.getElementById("results");
+  resultsDiv.innerHTML = ""; // Clear previous results
+
+  // Regex to check clickTag or GWD Exit
+  const clickHandlerRegex = /(clickTag|gwdAd\.exit)/i;
+  const hasClickHandler = clickHandlerRegex.test(html);
+
+  if (hasClickHandler) {
+    resultsDiv.innerHTML += "<p class='pass'>✔ Click Handler Found (clickTag or GWD Exit)</p>";
+
+    // Try extracting landing page from clickTag
+    const urlExtractionRegex = /var\s+clickTag\s*=\s*['"](https?:\/\/[^'"]+)['"]/i;
+    const urlMatch = html.match(urlExtractionRegex);
+
+    if (urlMatch && urlMatch[1]) {
+      const landingPage = urlMatch[1];
+      const p = document.createElement('p');
+      p.className = 'pass';
+      p.textContent = `✔ Landing Page: ${landingPage}`;
+      resultsDiv.appendChild(p);
+    } else {
+      resultsDiv.innerHTML += "<p class='fail'>✘ Landing Page URL could not be extracted from clickTag variable.</p>";
+    }
+
+    // ✅ Only parse images if clickTag is found
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, "text/html");
+    const imgs = Array.from(doc.querySelectorAll("img"));
+
+    if (imgs.length === 0) {
+      resultsDiv.innerHTML += "<p class='fail'>✘ No images found in the HTML.</p>";
+      return;
+    }
+
+    // Filter out SVG and PNG images right here
+    const filteredImgs = imgs.filter(img => {
+      const src = (img.getAttribute("src") || "").toLowerCase();
+      return !src.endsWith(".svg") && !src.endsWith(".png");
+    });
+
+    if (filteredImgs.length === 0) {
+      resultsDiv.innerHTML += "<p class='fail'>✘ Only SVG/PNG images found (skipped).</p>";
+      return;
+    }
+
+    // Map each <img> to its file in the zip
+    const imagePromises = filteredImgs.map(img => {
+      let imgPath = img.getAttribute("src") || "";
+      imgPath = imgPath.replace(/^\.?\//, ''); // clean relative paths
+      let zipFileName = Object.keys(zip.files).find(fileName => fileName.endsWith(imgPath) && !zip.files[fileName].dir);
+
+      if (!zipFileName) return Promise.resolve(null);
+
+      return zip.file(zipFileName).async("base64").then(base64Data => {
+        return {
+          name: zipFileName,
+          src: `data:image/${getExtension(zipFileName)};base64,${base64Data}`
+        };
+      });
+    });
+
+    Promise.all(imagePromises).then(imageObjects => {
+      const validImages = imageObjects.filter(i => i !== null);
+
+      if (validImages.length === 0) {
+        resultsDiv.innerHTML += "<p class='fail'>✘ No valid (non-SVG/PNG) images could be loaded from the zip.</p>";
+        return;
+      }
+
+      // Render all valid images
+      validImages.forEach(imgObj => {
+        const status = document.createElement("p");
+        status.className = "pass";
+        status.innerHTML = `✔ Asset Found: <b>${imgObj.name}</b>`;
+        resultsDiv.appendChild(status);
+
+        const imgElement = document.createElement("img");
+        imgElement.src = imgObj.src;
+        resultsDiv.appendChild(imgElement);
+      });
+    });
+
+  } else {
+    resultsDiv.innerHTML += "<p class='fail'>✘ Click Handler Missing (No clickTag variable or GWD Exit found)</p>";
+    // ❌ If no clickTag, don’t process images
+  }
+}
+
+function getExtension(filename) {
+  const ext = filename.split('.').pop().toLowerCase();
+  return ext === "jpg" ? "jpeg" : ext;
+}
+</script>
+</body>
+</html>
