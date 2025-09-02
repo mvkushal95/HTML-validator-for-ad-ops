@@ -19,7 +19,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     .pass { color: green; font-weight: bold; }
     .fail { color: red; font-weight: bold; }
     p { margin: 5px 0; }
-    iframe { width: 300px; height: 250px; border: 1px solid #ccc; margin-top: 10px; }
+    iframe { border: 1px solid #ccc; margin-top: 10px; }
   </style>
 </head>
 <body>
@@ -40,7 +40,7 @@ document.getElementById('zipInput').addEventListener('change', function(event) {
   resultsDiv.innerHTML = "Processing zip...";
 
   JSZip.loadAsync(file).then(zip => {
-    // Find HTML entry file (not just index.html, fallback to first .html file)
+    // Find HTML entry file
     let htmlFileName = Object.keys(zip.files).find(name => /index\.html$/i.test(name));
     if (!htmlFileName) {
       htmlFileName = Object.keys(zip.files).find(name => /\.html$/i.test(name));
@@ -52,42 +52,53 @@ document.getElementById('zipInput').addEventListener('change', function(event) {
     }
 
     zip.file(htmlFileName).async("string").then(htmlContent => {
-      validateCreative(htmlContent, zip, htmlFileName);
+      validateCreative(htmlContent);
     });
   }).catch(err => {
     resultsDiv.innerHTML = `<p class='fail'>✘ Error reading zip: ${err.message}</p>`;
   });
 });
 
-function validateCreative(html, zip, htmlFileName) {
+function validateCreative(html) {
   const resultsDiv = document.getElementById("results");
   resultsDiv.innerHTML = ""; // Clear previous results
 
-  // Regex to check clickTag or GWD Exit
-  const clickHandlerRegex = /(clickTag|gwdAd\.exit)/i;
+  // Check for click handler
+  const clickHandlerRegex = /(clickTag|gwdAd\.exit|gwdGoogleAd\.exit)/i;
   const hasClickHandler = clickHandlerRegex.test(html);
 
   if (hasClickHandler) {
-    resultsDiv.innerHTML += "<p class='pass'>✔ Click Handler Found (clickTag or GWD Exit)</p>";
+    resultsDiv.innerHTML += "<p class='pass'>✔ Click Handler Found</p>";
 
-    // Try extracting landing page from clickTag
-    const urlExtractionRegex = /var\s+clickTag\s*=\s*['"](https?:\/\/[^'"]+)['"]/i;
-    const urlMatch = html.match(urlExtractionRegex);
+    let landingPages = [];
 
-    if (urlMatch && urlMatch[1]) {
-      const landingPage = urlMatch[1];
-      resultsDiv.innerHTML += `<p class='pass'>✔ Landing Page: ${landingPage}</p>`;
-    } else {
-      resultsDiv.innerHTML += "<p class='fail'>✘ Landing Page URL could not be extracted from clickTag variable.</p>";
+    // Case 1: var clickTag = "..."
+    const clickTagRegex = /var\s+clickTag\s*=\s*['"](https?:\/\/[^'"]+)['"]/gi;
+    let match;
+    while ((match = clickTagRegex.exec(html)) !== null) {
+      landingPages.push(match[1]);
     }
 
-    // ✅ Render the actual creative in an iframe
+    // Case 2: gwd.actions.gwdGoogleAd.exit(...)
+    const gwdExitRegex = /gwd\.actions\.gwdGoogleAd\.exit\([^,]+,\s*['"]clickTag['"]\s*,\s*['"](https?:\/\/[^'"]+)['"]/gi;
+    while ((match = gwdExitRegex.exec(html)) !== null) {
+      landingPages.push(match[1]);
+    }
+
+    if (landingPages.length > 0) {
+      landingPages.forEach(url => {
+        resultsDiv.innerHTML += `<p class='pass'>✔ Landing Page: ${url}</p>`;
+      });
+    } else {
+      resultsDiv.innerHTML += "<p class='fail'>✘ Landing Page URL could not be extracted.</p>";
+    }
+
+    // ✅ Render the creative preview
     const iframe = document.createElement("iframe");
     iframe.width = "300";
     iframe.height = "250";
     iframe.style.border = "1px solid #ccc";
 
-    // Blob URL for iframe
     const blob = new Blob([html], { type: "text/html" });
     const url = URL.createObjectURL(blob);
     iframe.src = url;
@@ -97,7 +108,7 @@ function validateCreative(html, zip, htmlFileName) {
     resultsDiv.appendChild(iframe);
 
   } else {
-    resultsDiv.innerHTML += "<p class='fail'>✘ Click Handler Missing (No clickTag variable or GWD Exit found)</p>";
+    resultsDiv.innerHTML += "<p class='fail'>✘ Click Handler Missing</p>";
   }
 }
 </script>
