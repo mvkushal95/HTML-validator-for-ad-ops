@@ -15,11 +15,11 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     body { font-family: Arial, sans-serif; padding: 20px; background: #f7f7f7; }
     h1 { color: #333; }
     input[type="file"] { margin-top: 10px; }
-    .results { margin-top: 20px; padding: 15px; background: #fff; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+    .results { margin-top: 20px; padding: 15px; background: #fff; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); width: auto; height: auto; }
     .pass { color: green; font-weight: bold; }
     .fail { color: red; font-weight: bold; }
     p { margin: 5px 0; }
-    iframe { border: 1px solid #ccc; background: #fff; margin-top: 10px; overflow: hidden; }
+    iframe { border: 1px solid #ccc; background: #fff; margin-top: 10px; overflow: hidden; display: block; }
   </style>
 </head>
 <body>
@@ -116,7 +116,7 @@ async function validateCreative(html, zip, htmlFileName) {
     updatedHtml = updatedHtml.replace(regex, blobUrl);
   }
 
-  // ✅ Inject clickTag script + full-page overlay link
+  // ✅ Inject clickTag script + relative overlay link
   if (landingPage) {
     updatedHtml = `
       <script>
@@ -124,20 +124,19 @@ async function validateCreative(html, zip, htmlFileName) {
         window.clickTag = clickTag;
       <\/script>
       <a href="${landingPage}" target="_blank" style="
-        position:fixed;
-        top:0;left:0;
+        position:relative;
+        display:block;
         width:100%;
         height:100%;
         z-index:999999;
-        display:block;
         background:transparent;
         cursor:pointer;
       "></a>
     ` + updatedHtml;
   }
 
-  // ✅ Get ad size
-  let width = 300, height = 250;
+  // ✅ Get ad size (if meta is present)
+  let width, height;
   const sizeMatch = html.match(/<meta[^>]+name=['"]ad.size['"][^>]+content=['"]width=(\\d+),height=(\\d+)['"]/i);
   if (sizeMatch) {
     width = sizeMatch[1];
@@ -146,11 +145,14 @@ async function validateCreative(html, zip, htmlFileName) {
 
   // ✅ Render in iframe
   const iframe = document.createElement("iframe");
-  iframe.width = width;
-  iframe.height = height;
   iframe.scrolling = "no";
   iframe.style.overflow = "hidden";
   iframe.style.border = "1px solid #ccc";
+  iframe.style.display = "block";
+
+  // Use meta size if defined, else safe default so iframe shows
+  iframe.width = width || 600;
+  iframe.height = height || 600;
 
   const blob = new Blob([updatedHtml], { type: "text/html" });
   iframe.src = URL.createObjectURL(blob);
@@ -180,4 +182,3 @@ async function validateCreative(html, zip, htmlFileName) {
 </script>
 </body>
 </html>
-
