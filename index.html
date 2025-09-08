@@ -19,7 +19,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     .pass { color: green; font-weight: bold; }
     .fail { color: red; font-weight: bold; }
     p { margin: 5px 0; }
-    iframe { width: 300px; height: 250px; border: 1px solid #ccc; background: #fff; margin-top: 10px; }
+    iframe { border: 1px solid #ccc; background: #fff; margin-top: 10px; overflow: hidden; }
   </style>
 </head>
 <body>
@@ -62,30 +62,25 @@ async function validateCreative(html, zip, htmlFileName) {
   const resultsDiv = document.getElementById("results");
   resultsDiv.innerHTML = "";
 
-  // ✅ Click handler detection
+  // ✅ Check for click handler
   const clickHandlerRegex = /(clickTag|gwdAd\.exit|gwd\.actions\.gwdGoogleAd\.exit)/i;
   const hasClickHandler = clickHandlerRegex.test(html);
 
+  let landingPage = null;
   if (hasClickHandler) {
-    resultsDiv.innerHTML += "<p class='pass'>✔ Click Handler Found (clickTag or GWD Exit)</p>";
+    resultsDiv.innerHTML += "<p class='pass'>✔ Click Handler Found</p>";
 
-    // ✅ Try extracting landing page
-    let landingPage = null;
-
-    // Case 1: var clickTag = "..."
+    // Extract landing page
     const clickTagRegex = /var\s+clickTag\s*=\s*['"](https?:\/\/[^'"]+)['"]/i;
     const clickTagMatch = html.match(clickTagRegex);
     if (clickTagMatch && clickTagMatch[1]) {
       landingPage = clickTagMatch[1];
     }
 
-    // Case 2: gwd.actions.gwdGoogleAd.exit(...)
-    if (!landingPage) {
-      const gwdExitRegex = /gwd\.actions\.gwdGoogleAd\.exit\([^,]+,\s*['"]clickTag['"]\s*,\s*['"](https?:\/\/[^'"]+)['"]/i;
-      const gwdExitMatch = html.match(gwdExitRegex);
-      if (gwdExitMatch && gwdExitMatch[1]) {
-        landingPage = gwdExitMatch[1];
-      }
+    const gwdExitRegex = /gwd\.actions\.gwdGoogleAd\.exit\([^,]+,\s*['"]clickTag['"]\s*,\s*['"](https?:\/\/[^'"]+)['"]/i;
+    const gwdExitMatch = html.match(gwdExitRegex);
+    if (!landingPage && gwdExitMatch && gwdExitMatch[1]) {
+      landingPage = gwdExitMatch[1];
     }
 
     if (landingPage) {
@@ -93,47 +88,94 @@ async function validateCreative(html, zip, htmlFileName) {
     } else {
       resultsDiv.innerHTML += "<p class='fail'>✘ Landing Page URL could not be extracted.</p>";
     }
-
-    // ✅ Build Blob URLs for assets (now includes .svg too)
-    const assetUrls = {};
-    await Promise.all(Object.keys(zip.files).map(async name => {
-      if (!zip.files[name].dir && !name.endsWith(".html")) {
-        const ext = name.split(".").pop().toLowerCase();
-        let mime = "application/octet-stream";
-        if (["png","jpg","jpeg","gif","webp"].includes(ext)) mime = "image/" + (ext==="jpg"?"jpeg":ext);
-        if (ext === "svg") mime = "image/svg+xml";
-        if (ext === "css") mime = "text/css";
-        if (ext === "js") mime = "application/javascript";
-
-        const blob = await zip.files[name].async("blob");
-        assetUrls[name] = URL.createObjectURL(new Blob([blob], {type: mime}));
-      }
-    }));
-
-    // Replace asset references in HTML with blob URLs
-    let updatedHtml = html;
-    for (const [path, blobUrl] of Object.entries(assetUrls)) {
-      const safePath = path.replace(/[-/\\^$*+?.()|[\]{}]/g, "\\$&");
-      const regex = new RegExp(safePath, "g");
-      updatedHtml = updatedHtml.replace(regex, blobUrl);
-    }
-
-    // ✅ Render in iframe
-    const iframe = document.createElement("iframe");
-    iframe.width = "300";
-    iframe.height = "250";
-    iframe.style.border = "1px solid #ccc";
-
-    const blob = new Blob([updatedHtml], { type: "text/html" });
-    iframe.src = URL.createObjectURL(blob);
-
-    resultsDiv.appendChild(document.createElement("hr"));
-    resultsDiv.innerHTML += "<p class='pass'>✔ Creative Preview:</p>";
-    resultsDiv.appendChild(iframe);
-
   } else {
-    resultsDiv.innerHTML += "<p class='fail'>✘ Click Handler Missing (No clickTag variable or GWD Exit found)</p>";
+    resultsDiv.innerHTML += "<p class='fail'>✘ Click Handler Missing</p>";
   }
+
+  // ✅ Build Blob URLs for assets
+  const assetUrls = {};
+  await Promise.all(Object.keys(zip.files).map(async name => {
+    if (!zip.files[name].dir && !name.endsWith(".html")) {
+      const ext = name.split(".").pop().toLowerCase();
+      let mime = "application/octet-stream";
+      if (["png","jpg","jpeg","gif","webp"].includes(ext)) mime = "image/" + (ext==="jpg"?"jpeg":ext);
+      if (ext === "svg") mime = "image/svg+xml";
+      if (ext === "css") mime = "text/css";
+      if (ext === "js") mime = "application/javascript";
+
+      const blob = await zip.files[name].async("blob");
+      assetUrls[name] = URL.createObjectURL(new Blob([blob], {type: mime}));
+    }
+  }));
+
+  // Replace asset references
+  let updatedHtml = html;
+  for (const [path, blobUrl] of Object.entries(assetUrls)) {
+    const safePath = path.replace(/[-/\\^$*+?.()|[\]{}]/g, "\\$&");
+    const regex = new RegExp(safePath, "g");
+    updatedHtml = updatedHtml.replace(regex, blobUrl);
+  }
+
+  // ✅ Inject clickTag script + full-page overlay link
+  if (landingPage) {
+    updatedHtml = `
+      <script>
+        var clickTag = "${landingPage}";
+        window.clickTag = clickTag;
+      <\/script>
+      <a href="${landingPage}" target="_blank" style="
+        position:fixed;
+        top:0;left:0;
+        width:100%;
+        height:100%;
+        z-index:999999;
+        display:block;
+        background:transparent;
+        cursor:pointer;
+      "></a>
+    ` + updatedHtml;
+  }
+
+  // ✅ Get ad size
+  let width = 300, height = 250;
+  const sizeMatch = html.match(/<meta[^>]+name=['"]ad.size['"][^>]+content=['"]width=(\\d+),height=(\\d+)['"]/i);
+  if (sizeMatch) {
+    width = sizeMatch[1];
+    height = sizeMatch[2];
+  }
+
+  // ✅ Render in iframe
+  const iframe = document.createElement("iframe");
+  iframe.width = width;
+  iframe.height = height;
+  iframe.scrolling = "no";
+  iframe.style.overflow = "hidden";
+  iframe.style.border = "1px solid #ccc";
+
+  const blob = new Blob([updatedHtml], { type: "text/html" });
+  iframe.src = URL.createObjectURL(blob);
+
+  // Adjust size after load
+  iframe.onload = () => {
+    try {
+      const doc = iframe.contentWindow.document;
+      const w = doc.body.scrollWidth;
+      const h = doc.body.scrollHeight;
+      if (w > 0 && h > 0) {
+        iframe.width = w;
+        iframe.height = h;
+      }
+      if (landingPage) {
+        iframe.contentWindow.clickTag = landingPage;
+      }
+    } catch (e) {
+      console.warn("Iframe resize or clickTag injection failed:", e);
+    }
+  };
+
+  resultsDiv.appendChild(document.createElement("hr"));
+  resultsDiv.innerHTML += "<p class='pass'>✔ Creative Preview:</p>";
+  resultsDiv.appendChild(iframe);
 }
 </script>
 </body>
