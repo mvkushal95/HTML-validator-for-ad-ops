@@ -146,7 +146,7 @@ async function validateCreative(html, zip, htmlFileName) {
   const iframe = document.createElement("iframe");
   iframe.scrolling = "no";
   iframe.style.overflow = "hidden";
-  iframe.style.border = "1px solid #ccc";
+  iframe.style.border = "none";
   iframe.style.display = "block";
 
   // Use meta size if defined, else safe default so iframe shows
@@ -181,3 +181,4 @@ async function validateCreative(html, zip, htmlFileName) {
 </script>
 </body>
 </html>
+
