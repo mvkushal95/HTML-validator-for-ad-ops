@@ -541,7 +541,7 @@ const clickHandlerRegex = /(clickTag|site|gwdAd\.exit|gwd\.actions\.gwdGoogleAd\
     if (clickTagMatch && clickTagMatch[1]) landingPage = clickTagMatch[1];
     const gwdExitRegex = /gwd\.actions\.gwdGoogleAd\.exit\([^,]+,\s*['"](clickTag|site)['"]\s*,\s*['"](https?:\/\/[^'"]+)['"]/i;
     const gwdExitMatch = html.match(gwdExitRegex);
-    if (!landingPage && gwdExitMatch && gwdExitMatch[1]) landingPage = gwdExitMatch[1];
+    if (!landingPage && gwdExitMatch && gwdExitMatch[2]) landingPage = gwdExitMatch[2];    
     if (landingPage) {
         container.innerHTML += `<p class='pass'>✔ Landing Page: <a href="${landingPage}" target="_blank">${landingPage}</a></p>`;
         resultEntry.landingPage = landingPage;
@@ -847,6 +847,7 @@ updateNativePreview();
 </script>
 </body>
 </html>
+
 
 
 
