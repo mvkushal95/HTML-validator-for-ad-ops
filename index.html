@@ -529,8 +529,7 @@ function handleZipFile(file, container, resultEntry) {
 async function validateCreative(html, zip, htmlFileName, container, resultEntry) {
   const statusMsg = container.querySelector('.processing-status');
   if(statusMsg) statusMsg.remove();
-  const clickHandlerRegex = /(clickTag|gwdAd\.exit|gwd\.actions\.gwdGoogleAd\.exit)/i;
-  const hasClickHandler = clickHandlerRegex.test(html);
+const clickHandlerRegex = /(clickTag|site|gwdAd\.exit|gwd\.actions\.gwdGoogleAd\.exit)/i;  const hasClickHandler = clickHandlerRegex.test(html);
   let landingPage = null;
 
 
@@ -540,7 +539,7 @@ async function validateCreative(html, zip, htmlFileName, container, resultEntry)
     const clickTagRegex = /var\s+clickTag\s*=\s*['"](https?:\/\/[^'"]+)['"]/i;
     const clickTagMatch = html.match(clickTagRegex);
     if (clickTagMatch && clickTagMatch[1]) landingPage = clickTagMatch[1];
-    const gwdExitRegex = /gwd\.actions\.gwdGoogleAd\.exit\([^,]+,\s*['"]clickTag['"]\s*,\s*['"](https?:\/\/[^'"]+)['"]/i;
+    const gwdExitRegex = /gwd\.actions\.gwdGoogleAd\.exit\([^,]+,\s*['"](clickTag|site)['"]\s*,\s*['"](https?:\/\/[^'"]+)['"]/i;
     const gwdExitMatch = html.match(gwdExitRegex);
     if (!landingPage && gwdExitMatch && gwdExitMatch[1]) landingPage = gwdExitMatch[1];
     if (landingPage) {
@@ -848,5 +847,6 @@ updateNativePreview();
 </script>
 </body>
 </html>
+
 
 
