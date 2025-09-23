@@ -1,97 +1,561 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <!-- Google Tag Manager -->
-<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-})(window,document,'script','dataLayer','GTM-THRPXSR9');</script>
-<!-- End Google Tag Manager -->
-  <title>CM360 Zip Creative Validator</title>
+  <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+  new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+  j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+  'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+  })(window,document,'script','dataLayer','GTM-THRPXSR9');</script>
+  <title>All-in-One Creative Validator</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.7.1/jszip.min.js?v=20250908"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+
+
+
   <style>
-    body { font-family: Arial, sans-serif; padding: 20px; background: #f7f7f7; }
-    h1 { color: #333; }
-    input[type="file"] { margin-top: 10px; }
-    .results { margin-top: 20px; padding: 15px; background: #fff; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); width: auto; height: auto; }
-    .pass { color: green; font-weight: bold; }
-    .fail { color: red; font-weight: bold; }
-    p { margin: 5px 0; }
-    iframe { border: 1px solid #ccc; background: #fff; margin-top: 10px; overflow: hidden; display: block; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; padding: 20px; background: skyblue; color: #333; }
+    h1, h2 { color: #1a202c; }
+    h2 { font-size: 1.2em; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; margin-top: 0;}
+    h3 { margin-top: 20px; }
+    input[type="file"], input[type="text"], input[type="number"], textarea { margin-top: 5px; margin-bottom: 10px; padding: 8px; width: 95%; border: 1px solid #ccc; border-radius: 4px; }
+    textarea { resize: vertical; }
+    .results-area { margin-top: 20px; }
+    .results { padding: 20px; background: #fff; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); width: auto; height: auto; margin-bottom: 20px; }
+    .pass { color: #2d8a5b; font-weight: bold; }
+    .fail { color: #c53030; font-weight: bold; }
+    .info { color: #2b6cb0; font-weight: bold; }
+    p { margin: 5px 0; line-height: 1.6; }
+    iframe, img, video { border: 1px solid #ddd; background: #fff; margin-top: 10px; display: block; max-width: 100%; }
+    .size-warning { color: #b94a0a; background-color: #f2dede; border: 1px solid #ebccd1; padding: 10px; border-radius: 4px; margin-bottom: 15px;}
+    .size-success { color: #468847; background-color: #dff0d8; border: 1px solid #d6e9c6; padding: 10px; border-radius: 4px; margin-bottom: 15px;}
+    .validation-list { list-style: none; padding-left: 0; }
+    .validation-list li { margin-bottom: 8px; display: flex; align-items: center; }
+    .validation-list span { margin-right: 10px; font-size: 1.2em; }
+    /* ADD THIS CSS */
+.preview-wrapper {
+    position: relative; /* Essential for positioning the overlay */
+    display: inline-block; /* Adjusts to the iframe's size */
+}
+
+.click-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 10;      /* Ensures it's on top of the creative */
+    cursor: pointer;
+    display: none;    /* It will be hidden until a landing page is found */
+}   
+   
+    /* Tab Styles */
+    .tabs { overflow: hidden; border-bottom: 1px solid #ccc; margin-bottom: 20px; }
+    .tab-link { background-color: #f1f1f1; float: left; border: none; outline: none; cursor: pointer; padding: 14px 16px; transition: 0.3s; font-size: 17px; }
+    .tab-link:hover { background-color: #ddd; }
+    .tab-link.active { background-color: #ccc; }
+    .tab-content { display: none; padding: 6px 12px; border-top: none; animation: fadeEffect 0.5s; }
+    @keyframes fadeEffect { from {opacity: 0;} to {opacity: 1;} }
+
+
+    /* Rulebook & Download Styles */
+    .rulebook-container { padding: 15px; background: #eef2f7; border-radius: 8px; margin-bottom: 20px; }
+    .rulebook-container h2 { border: none; }
+    .rulebook-inputs { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
+    .revenue-impact-pass { border-left: 5px solid #2d8a5b; margin-top: 15px; }
+    .revenue-impact-fail { border-left: 5px solid #c53030; margin-top: 15px; }
+
+    /* Policy & Content Safety Check messages */
+.policy-success {
+  background-color: #e6f9ed;
+  border: 1px solid #2e7d32;
+  color: #2e7d32;
+  padding: 8px 12px;
+  border-radius: 6px;
+  margin-top: 10px;
+  font-weight: 500;
+}
+
+.policy-warning {
+  background-color: #fdecea;
+  border: 1px solid #c62828;
+  color: #c62828;
+  padding: 8px 12px;
+  border-radius: 6px;
+  margin-top: 10px;
+  font-weight: 500;
+}
+
+/* Policy Impact Rulebook section */
+.policy-impact-pass {
+  background-color: #f0fff4;
+  border-left: 4px solid #38a169;
+  padding: 10px 14px;
+  margin-top: 10px;
+  border-radius: 6px;
+}
+
+.policy-impact-pass p {
+  margin: 4px 0;
+  color: #22543d;
+}
+
+.policy-impact-fail {
+  background-color: #fff5f5;
+  border-left: 4px solid #e53e3e;
+  padding: 10px 14px;
+  margin-top: 10px;
+  border-radius: 6px;
+}
+
+.policy-impact-fail p {
+  margin: 4px 0;
+  color: #742a2a;
+}
+
+    /* Native Ad Preview Styles */
+    .native-container { display: flex; flex-wrap: wrap; gap: 20px; }
+    .native-controls { flex: 1; min-width: 300px; }
+    .native-previews { flex: 2; display: flex; flex-wrap: wrap; gap: 20px; }
+    .preview-wrapper { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+    .preview-box { border: 1px solid #ccc; padding: 10px; background: #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+   
+    .native-header { display: flex; align-items: center; gap: 10px; padding-bottom: 10px; }
+    .native-header img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; background: #eee; border: 1px solid #ddd; }
+    .advertiser-info p { margin: 0; line-height: 1.2; }
+    .advertiser-name { font-weight: bold; color: #333; font-size: 0.9em; }
+    .display-url { font-size: 0.8em; color: #777; }
+
+
+    #desktop-preview { width: 500px; }
+    #desktop-preview img#desktop-img-preview { width: 100%; height: 262px; object-fit: cover; background: #eee; }
+   
+    #mobile-preview { width: 320px; }
+    #mobile-preview img#mobile-img-preview { width: 100%; height: 168px; object-fit: cover; background: #eee; }
+   
+    .native-text { padding: 10px; }
+    .native-text h3 { margin: 0 0 5px; font-size: 1.1em; color: #1a202c; }
+    .native-text p { margin: 0 0 10px; font-size: 0.9em; color: #555; }
+    .native-cta { display: inline-block; padding: 8px 15px; background-color: #4285f4; color: white; text-decoration: none; border-radius: 4px; font-weight: bold; }
+    .download-btn { padding: 8px 12px; border: none; border-radius: 5px; cursor: pointer; font-size: 0.9em; margin: 0 5px; }
+    .download-btn.png { background: #2d8a5b; color: white; }
+    .download-btn.png:hover { background: #236a46; }
+    .download-btn.pdf { background: #c53030; color: white; }
+    .download-btn.pdf:hover { background: #a02020; }
+    .download-btn.csv { background: #1a73e8; color: white; }
+    .download-btn.csv:hover { background: #1558b3; }
+    .download-options { display: flex; justify-content: center; align-items: center; width: 100%;}
+    .download-status { font-size: 0.8em; color: #555; min-height: 1em; }
   </style>
 </head>
 <body>
-  <!-- Google Tag Manager (noscript) -->
-<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-THRPXSR9"
-height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
-<!-- End Google Tag Manager (noscript) -->
-  <h1>CM360 Zip Creative Validator</h1>
-  <input type="file" id="zipInput" accept=".zip" />
-  <div class="results" id="results"></div>
+  <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-THRPXSR9"
+  height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+  <h1>All-in-One Creative Validator</h1>
+
+
+
+
+  <div class="tabs">
+    <button class="tab-link active" onclick="openTab(event, 'Validator')">Creative Validator</button>
+    <button class="tab-link" onclick="openTab(event, 'Native')">Native Preview Validator</button>
+  </div>
+
+
+
+
+  <div id="Validator" class="tab-content" style="display: block;">
+    <div class="rulebook-container">
+        <h2>Revenue Impact Rulebook</h2>
+        <p>Enter your campaign details to estimate the revenue impact of a failed creative. The calculation is based on the daily budget lost for each day the issue goes undetected.</p>
+        <div class="rulebook-inputs">
+            <div>
+                <label for="ioBudget"><b>Total IO Budget ($)</b></label>
+                <input type="number" id="ioBudget" placeholder="e.g., 50000" style="width: 95%;">
+            </div>
+            <div>
+                <label for="dailyCap"><b>Line Item Daily Cap ($)</b></label>
+                <input type="number" id="dailyCap" placeholder="e.g., 2000" style="width: 95%;">
+            </div>
+            <div>
+                <label for="detectionDays"><b>Days Until Detection</b></label>
+                <input type="number" id="detectionDays" placeholder="e.g., 3" style="width: 95%;">
+            </div>
+        </div>
+    </div>
+
+
+    <p>You can upload up to 10 files at once (images, videos, or .zip files).</p>
+    <input type="file" id="fileInput" accept=".zip,.jpg,.jpeg,.png,.gif,.avi,.mov,.mp4,.m4v,.mpeg,.mpg,.webm,.wmv" multiple />
+   
+    <div id="validator-download-controls" style="display: none; margin-top: 20px; padding: 15px; background: #fff; border-radius: 8px;">
+        <h3>Download Full Report</h3>
+        <button class="download-btn csv" onclick="downloadValidatorCsv('validation-report.csv')">Download Report as CSV</button>
+        <button class="download-btn pdf" onclick="downloadValidatorPdf('validation-report.pdf')">Download Report as PDF</button>
+        <div class="text-center" style="margin-top: 10px;"><span id="validator-download-status" class="download-status"></span></div>
+    </div>
+
+
+    <div class="results-area" id="results"></div>
+  </div>
+
+
+
+
+  <div id="Native" class="tab-content">
+    <div class="native-container">
+        <div class="native-controls">
+            <h3>Native Ad Components</h3>
+            <label for="nativeAdvertiserName">Advertiser Name (25 chars)</label>
+            <input type="text" id="nativeAdvertiserName" placeholder="Your Company" maxlength="25">
+           
+            <label for="nativeLogo">Logo Image</label>
+            <input type="file" id="nativeLogo" accept="image/*">
+
+
+            <label for="nativeHeadline">Headline (25 chars)</label>
+            <input type="text" id="nativeHeadline" placeholder="Your Catchy Headline" maxlength="25">
+
+
+            <label for="nativeLongHeadline">Long Headline (50 chars)</label>
+            <input type="text" id="nativeLongHeadline" placeholder="Your Longer, More Descriptive Headline" maxlength="50">
+
+
+            <label for="nativeBody">Body Text (90 chars)</label>
+            <textarea id="nativeBody" placeholder="A compelling description of your product or service." rows="3" maxlength="90"></textarea>
+
+
+            <label for="nativeLongBody">Long Body Text (150 chars)</label>
+            <textarea id="nativeLongBody" placeholder="An even more detailed description for layouts that support it." rows="4" maxlength="150"></textarea>
+           
+            <label for="nativeCTA">CTA Text (15 chars)</label>
+            <input type="text" id="nativeCTA" placeholder="Shop Now" maxlength="15">
+           
+            <label for="nativeLandingPage">Landing Page URL</label>
+            <input type="text" id="nativeLandingPage" placeholder="https://example.com">
+
+
+            <label for="nativeDisplayURL">Display URL (30 chars)</label>
+            <input type="text" id="nativeDisplayURL" placeholder="example.com" maxlength="30">
+           
+            <label for="nativeImage">Main Image</label>
+            <input type="file" id="nativeImage" accept="image/*">
+           
+            <button class="download-btn csv" onclick="downloadDataAsCsv('native-ad-data.csv')" style="width: calc(95% + 16px); margin-top: 10px;">Download Data as CSV</button>
+            <div class="text-center"><span id="csv-download-status" class="download-status"></span></div>
+        </div>
+        <div class="native-previews">
+            <div class="preview-wrapper">
+                <h3>Desktop Preview</h3>
+                <div id="desktop-preview" class="preview-box">
+                    <div class="native-header">
+                        <img id="desktop-logo-preview" src="" alt="Logo">
+                        <div class="advertiser-info">
+                            <p id="desktop-advertiser" class="advertiser-name">Your Company</p>
+                            <p id="desktop-display-url" class="display-url">example.com</p>
+                        </div>
+                    </div>
+                    <img id="desktop-img-preview" src="" alt="Desktop ad image preview">
+                    <div class="native-text">
+                        <h3 id="desktop-headline">Your Catchy Headline</h3>
+                        <p id="desktop-body">A compelling description of your product or service.</p>
+                        <a href="#" id="desktop-cta" class="native-cta" onclick="return false;">Shop Now</a>
+                    </div>
+                </div>
+                <div class="download-options">
+                    <button class="download-btn png" onclick="downloadPreviewAsPng('desktop-preview', 'desktop-native-preview.png')">Download PNG</button>
+                    <button class="download-btn pdf" onclick="downloadPreviewAsPdf('desktop-preview', 'desktop-native-preview.pdf')">Download PDF</button>
+                </div>
+                <span id="desktop-download-status" class="download-status"></span>
+            </div>
+            <div class="preview-wrapper">
+                <h3>Mobile Preview</h3>
+                <div id="mobile-preview" class="preview-box">
+                    <div class="native-header">
+                        <img id="mobile-logo-preview" src="" alt="Logo">
+                         <div class="advertiser-info">
+                            <p id="mobile-advertiser" class="advertiser-name">Your Company</p>
+                            <p id="mobile-display-url" class="display-url">example.com</p>
+                        </div>
+                    </div>
+                    <img id="mobile-img-preview" src="" alt="Mobile ad image preview">
+                    <div class="native-text">
+                        <h3 id="mobile-headline">Your Catchy Headline</h3>
+                        <p id="mobile-body">A compelling description of your product or service.</p>
+                        <a href="#" id="mobile-cta" class="native-cta" onclick="return false;">Shop Now</a>
+                    </div>
+                </div>
+                <div class="download-options">
+                    <button class="download-btn png" onclick="downloadPreviewAsPng('mobile-preview', 'mobile-native-preview.png')">Download PNG</button>
+                    <button class="download-btn pdf" onclick="downloadPreviewAsPdf('mobile-preview', 'mobile-native-preview.pdf')">Download PDF</button>
+                </div>
+                <span id="mobile-download-status" class="download-status"></span>
+            </div>
+        </div>
+    </div>
+  </div>
+
+
+
+
 <script>
-document.getElementById('zipInput').addEventListener('change', function(event) {
-  const file = event.target.files[0];
-  if (!file) return;
+// --- Global Data Store for Reports ---
+let validationReportData = [];
 
-  const resultsDiv = document.getElementById("results");
-  resultsDiv.innerHTML = "Processing zip...";
 
-  JSZip.loadAsync(file).then(zip => {
-    let htmlFileName = Object.keys(zip.files).find(name => /index\.html$/i.test(name));
-    if (!htmlFileName) {
-      htmlFileName = Object.keys(zip.files).find(name => /\.html$/i.test(name));
+// --- File Size Limits ---
+const MAX_IMAGE_ZIP_SIZE_BYTES = 5 * 1024 * 1024; // 5MB
+const MAX_VIDEO_SIZE_BYTES = 1 * 1024 * 1024 * 1024; // 1GB
+
+
+
+
+// --- Tab Functionality ---
+function openTab(evt, tabName) {
+  let i, tabcontent, tablinks;
+  tabcontent = document.getElementsByClassName("tab-content");
+  for (i = 0; i < tabcontent.length; i++) {
+    tabcontent[i].style.display = "none";
+  }
+  tablinks = document.getElementsByClassName("tab-link");
+  for (i = 0; i < tablinks.length; i++) {
+    tablinks[i].className = tablinks[i].className.replace(" active", "");
+  }
+  document.getElementById(tabName).style.display = "block";
+  evt.currentTarget.className += " active";
+}
+
+
+
+
+// --- Creative Validator Logic ---
+document.getElementById('fileInput').addEventListener('change', function(event) {
+    const files = event.target.files;
+    if (!files.length) return;
+
+
+    if (files.length > 12) {
+        alert("You can only upload a maximum of 12 files at a time.");
+        event.target.value = ''; // Clear the selection
+        return;
     }
 
-    if (!htmlFileName) {
-      resultsDiv.innerHTML = "<p class='fail'>✘ No HTML file found in zip</p>";
-      return;
-    }
 
-    zip.file(htmlFileName).async("string").then(htmlContent => {
-      validateCreative(htmlContent, zip, htmlFileName);
-    });
-  }).catch(err => {
-    resultsDiv.innerHTML = `<p class='fail'>✘ Error reading zip: ${err.message}</p>`;
-  });
+    const resultsArea = document.getElementById("results");
+    resultsArea.innerHTML = "";
+    validationReportData = []; // Clear previous report data
+    document.getElementById('validator-download-controls').style.display = 'block';
+    
+
+    const ioBudget = parseFloat(document.getElementById('ioBudget').value) || 0;
+    const dailyCap = parseFloat(document.getElementById('dailyCap').value) || 0;
+    const detectionDays = parseInt(document.getElementById('detectionDays').value) || 0;
+
+
+    for (const file of files) {
+        const fileContainer = document.createElement('div');
+        fileContainer.className = 'results';
+        fileContainer.innerHTML = `<h2>Results for: ${file.name}</h2>`;
+        resultsArea.appendChild(fileContainer);
+
+
+        const resultEntry = { fileName: file.name, fileType: file.type };
+
+
+        const isVideo = file.type.startsWith('video/');
+        const isImage = file.type.startsWith('image/');
+        const isZip = file.type === 'application/zip' || file.name.toLowerCase().endsWith('.zip');
+       
+        const maxSize = isVideo ? MAX_VIDEO_SIZE_BYTES : MAX_IMAGE_ZIP_SIZE_BYTES;
+        const maxSizeText = isVideo ? "1GB" : "5MB";
+        const fileSizeMB = (file.size / (1024 * 1024)).toFixed(2);
+       
+        let rulebookHTML = '';
+        const hasBudgetInfo = ioBudget > 0 && dailyCap > 0 && detectionDays > 0;
+
+
+        if (file.size > maxSize) {
+            fileContainer.innerHTML += `<div class='size-warning'><strong>Warning:</strong> File size is ${fileSizeMB} MB. This creative might be rejected by exchange (limit is ${maxSizeText}).</div>`;
+            resultEntry.sizeStatus = 'Fail (Oversized)';
+
+
+            if (hasBudgetInfo) {
+                let potentialLoss = dailyCap * detectionDays;
+                potentialLoss = Math.min(ioBudget, potentialLoss); // Cap loss at total budget
+                const revenueImpact = potentialLoss.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+                rulebookHTML = `<div class='results revenue-impact-fail'><p><strong>Revenue Impact Rulebook:</strong></p><p class='fail'>This creative's file size exceeds the recommended limit. Based on a daily cap of <strong>${dailyCap.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</strong>, this could cause a potential revenue loss of <strong>${revenueImpact}</strong> over <strong>${detectionDays} day(s)</strong> until detection and replacement.</p></div>`;
+                resultEntry.revenueImpactMessage = `Potential loss of ${revenueImpact} over ${detectionDays} day(s) due to oversized file.`;
+            }
+        } else {
+            fileContainer.innerHTML += `<div class='size-success'><strong>Success:</strong> File size is ${fileSizeMB} MB. This creative is likely to be accepted by Exchange (limit is ${maxSizeText}).</div>`;
+            resultEntry.sizeStatus = 'Pass';
+
+
+            if (hasBudgetInfo) {
+                let potentialLoss = dailyCap * detectionDays;
+                potentialLoss = Math.min(ioBudget, potentialLoss);
+                const revenueImpact = potentialLoss.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+                rulebookHTML = `<div class='results revenue-impact-pass'><p><strong>Revenue Impact Rulebook:</strong></p><p class='pass'>This creative's file size is within acceptable limits. By ensuring approval, you have helped save a potential <strong>${revenueImpact}</strong> in campaign revenue (based on a <strong>${detectionDays}-day</strong> detection period).</p></div>`;
+                resultEntry.revenueImpactMessage = `Saved a potential ${revenueImpact} by meeting size requirements.`;
+            }
+        }
+       
+        if (hasBudgetInfo) {
+            fileContainer.innerHTML += rulebookHTML;
+        }
+
+
+        let statusMsg = document.createElement('p');
+        statusMsg.className = 'processing-status';
+        fileContainer.appendChild(statusMsg);
+
+
+        if (isZip) {
+            statusMsg.textContent = "Processing ZIP file...";
+            handleZipFile(file, fileContainer, resultEntry);
+        } else if (isImage) {
+            statusMsg.textContent = "Processing image file...";
+            handleImageFile(file, fileContainer, resultEntry);
+        } else if (isVideo) {
+            statusMsg.textContent = "Processing video file...";
+            handleVideoFile(file, fileContainer, resultEntry);
+        } else {
+            fileContainer.innerHTML += "<p class='fail'>✘ Unsupported file type. Please upload a ZIP, image, or video file.</p>";
+            statusMsg.remove();
+        }
+        validationReportData.push(resultEntry);
+    }
 });
 
-async function validateCreative(html, zip, htmlFileName) {
-  const resultsDiv = document.getElementById("results");
-  resultsDiv.innerHTML = "";
 
-  // ✅ Check for click handler
+
+
+function handleVideoFile(file, container, resultEntry) {
+    const statusMsg = container.querySelector('.processing-status');
+    const videoUrl = URL.createObjectURL(file);
+    const video = document.createElement('video');
+
+
+    video.onloadedmetadata = function() {
+        if(statusMsg) statusMsg.remove();
+        const recommendedDims = { landscape: ['1280x720', '1920x1080', '1440x1080'], portrait: ['720x1280', '1080x1920', '1080x1440'], square: ['720x720', '1080x1080', '1920x1920'] };
+        const actualDims = `${this.videoWidth}x${this.videoHeight}`;
+        resultEntry.dimensions = actualDims;
+        const isRecommendedDim = Object.values(recommendedDims).flat().includes(actualDims);
+        const gcd = (a, b) => b === 0 ? a : gcd(b, a % b);
+        const r = gcd(this.videoWidth, this.videoHeight);
+        const actualAspectRatio = `${this.videoWidth / r}:${this.videoHeight / r}`;
+        resultEntry.aspectRatio = actualAspectRatio;
+        const recommendedAspectRatios = ['16:9', '4:3', '9:16', '3:4'];
+        const isRecommendedAspectRatio = recommendedAspectRatios.includes(actualAspectRatio);
+        const duration = this.duration;
+        resultEntry.duration = duration.toFixed(2);
+
+
+        let validationHTML = `<hr><p><strong>Video Validation Results:</strong></p><ul class="validation-list">`;
+        validationHTML += `<li>${isRecommendedDim ? "<span class='pass'>✔</span>" : "<span class='fail'>✘</span>"}<div><strong>Dimensions:</strong> ${actualDims}px. ${isRecommendedDim ? "Matches recommendation." : "Does not match a standard recommended dimension."}</div></li>`;
+        validationHTML += `<li>${isRecommendedAspectRatio ? "<span class='pass'>✔</span>" : "<span class='fail'>✘</span>"}<div><strong>Aspect Ratio:</strong> ${actualAspectRatio}. ${isRecommendedAspectRatio ? "Matches recommendation." : "Does not match a standard recommended aspect ratio."}</div></li>`;
+        validationHTML += `<li><span class='info'>ℹ</span><div><strong>Length:</strong> ${duration.toFixed(2)} seconds. (Recommended lengths are typically 15s or 30s).</div></li>`;
+        validationHTML += `<li><span class='info'>ℹ</span><div><strong>Codec:</strong> Recommended H.264 (Cannot verify automatically).</div></li>`;
+        validationHTML += `<li><span class='info'>ℹ</span><div><strong>Frame Rate:</strong> Recommended 23.98 or 29.97 FPS (Cannot verify automatically).</div></li>`;
+        validationHTML += `</ul><hr>`;
+        container.innerHTML += validationHTML;
+        container.innerHTML += "<p class='pass'>✔ Video Preview:</p>";
+        const previewVideo = document.createElement('video');
+        previewVideo.src = videoUrl;
+        previewVideo.controls = true;
+        container.appendChild(previewVideo);
+    };
+    video.onerror = function() {
+        if(statusMsg) statusMsg.remove();
+        container.innerHTML += "<p class='fail'>✘ Could not read video metadata.</p>";
+    };
+    video.src = videoUrl;
+}
+
+
+
+
+function handleImageFile(file, container, resultEntry) {
+  const statusMsg = container.querySelector('.processing-status');
+  const imageUrl = URL.createObjectURL(file);
+  const img = new Image();
+
+
+  img.onload = function() {
+    if(statusMsg) statusMsg.remove();
+    const dims = `${this.naturalWidth}px × ${this.naturalHeight}px`;
+    resultEntry.dimensions = `${this.naturalWidth}x${this.naturalHeight}`;
+    container.innerHTML += `<p><strong>Dimensions:</strong> ${dims}</p>`;
+    container.innerHTML += "<hr><p class='pass'>✔ Creative Preview:</p>";
+    const previewImg = document.createElement('img');
+    previewImg.src = imageUrl;
+    previewImg.style.height = 'auto';
+    container.appendChild(previewImg);
+    sendImageForValidation(file, container, resultEntry);
+  };
+  img.onerror = function() {
+    if(statusMsg) statusMsg.remove();
+    container.innerHTML += "<p class='fail'>✘ Could not read image details.</p>";
+  };
+  img.src = imageUrl;
+}
+
+
+
+
+function handleZipFile(file, container, resultEntry) {
+  const statusMsg = container.querySelector('.processing-status');
+  JSZip.loadAsync(file).then(zip => {
+    let htmlFileName = Object.keys(zip.files).find(name => /index\.html$/i.test(name));
+    if (!htmlFileName) htmlFileName = Object.keys(zip.files).find(name => /\.html$/i.test(name));
+    if (!htmlFileName) {
+      if(statusMsg) statusMsg.remove();
+      container.innerHTML += "<p class='fail'>✘ No HTML file found in zip</p>";
+      return;
+    }
+    zip.file(htmlFileName).async("string").then(htmlContent => {
+      validateCreative(htmlContent, zip, htmlFileName, container, resultEntry);
+    });
+  }).catch(err => {
+    if(statusMsg) statusMsg.remove();
+    container.innerHTML += `<p class='fail'>✘ Error reading zip: ${err.message}</p>`;
+  });
+}
+
+async function validateCreative(html, zip, htmlFileName, container, resultEntry) {
+  const statusMsg = container.querySelector('.processing-status');
+  if(statusMsg) statusMsg.remove();
   const clickHandlerRegex = /(clickTag|gwdAd\.exit|gwd\.actions\.gwdGoogleAd\.exit)/i;
   const hasClickHandler = clickHandlerRegex.test(html);
-
   let landingPage = null;
-  if (hasClickHandler) {
-    resultsDiv.innerHTML += "<p class='pass'>✔ Click Handler Found</p>";
 
-    // Extract landing page
+
+  if (hasClickHandler) {
+    container.innerHTML += "<p class='pass'>✔ Click Handler Found</p>";
+    resultEntry.clickHandler = 'Found';
     const clickTagRegex = /var\s+clickTag\s*=\s*['"](https?:\/\/[^'"]+)['"]/i;
     const clickTagMatch = html.match(clickTagRegex);
-    if (clickTagMatch && clickTagMatch[1]) {
-      landingPage = clickTagMatch[1];
-    }
-
+    if (clickTagMatch && clickTagMatch[1]) landingPage = clickTagMatch[1];
     const gwdExitRegex = /gwd\.actions\.gwdGoogleAd\.exit\([^,]+,\s*['"]clickTag['"]\s*,\s*['"](https?:\/\/[^'"]+)['"]/i;
     const gwdExitMatch = html.match(gwdExitRegex);
-    if (!landingPage && gwdExitMatch && gwdExitMatch[1]) {
-      landingPage = gwdExitMatch[1];
-    }
-
+    if (!landingPage && gwdExitMatch && gwdExitMatch[1]) landingPage = gwdExitMatch[1];
     if (landingPage) {
-      resultsDiv.innerHTML += `<p class='pass'>✔ Landing Page: <a href="${landingPage}" target="_blank">${landingPage}</a></p>`;
+        container.innerHTML += `<p class='pass'>✔ Landing Page: <a href="${landingPage}" target="_blank">${landingPage}</a></p>`;
+        resultEntry.landingPage = landingPage;
     } else {
-      resultsDiv.innerHTML += "<p class='fail'>✘ Landing Page URL could not be extracted.</p>";
+        container.innerHTML += "<p class='fail'>✘ Landing Page URL could not be extracted.</p>";
+        resultEntry.landingPage = 'Not Extracted';
     }
   } else {
-    resultsDiv.innerHTML += "<p class='fail'>✘ Click Handler Missing</p>";
+    container.innerHTML += "<p class='fail'>✘ Click Handler Missing</p>";
+    resultEntry.clickHandler = 'Missing';
   }
 
-  // ✅ Build Blob URLs for assets
+
   const assetUrls = {};
   await Promise.all(Object.keys(zip.files).map(async name => {
     if (!zip.files[name].dir && !name.endsWith(".html")) {
@@ -101,84 +565,391 @@ async function validateCreative(html, zip, htmlFileName) {
       if (ext === "svg") mime = "image/svg+xml";
       if (ext === "css") mime = "text/css";
       if (ext === "js") mime = "application/javascript";
-
       const blob = await zip.files[name].async("blob");
       assetUrls[name] = URL.createObjectURL(new Blob([blob], {type: mime}));
     }
   }));
-
-  // Replace asset references
   let updatedHtml = html;
   for (const [path, blobUrl] of Object.entries(assetUrls)) {
     const safePath = path.replace(/[-/\\^$*+?.()|[\]{}]/g, "\\$&");
-    const regex = new RegExp(safePath, "g");
-    updatedHtml = updatedHtml.replace(regex, blobUrl);
+    const regex = new RegExp(`['"](${safePath})['"]`, "g");
+    updatedHtml = updatedHtml.replace(regex, `"${blobUrl}"`);
   }
-
-  // ✅ Inject clickTag script + relative overlay link
-  if (landingPage) {
-    updatedHtml = `
-      <script>
-        var clickTag = "${landingPage}";
-        window.clickTag = clickTag;
-      <\/script>
-      <a href="${landingPage}" target="_blank" style="
-        position:fixed;
-        display:block;
-        width:100%;
-        height:100%;
-        z-index:999999;
-        background:transparent;
-        cursor:pointer;
-      "></a>
-    ` + updatedHtml;
-  }
-
-  // ✅ Get ad size (if meta is present)
+ 
   let width, height;
-  const sizeMatch = html.match(/<meta[^>]+name=['"]ad.size['"][^>]+content=['"]width=(\\d+),height=(\\d+)['"]/i);
+  const sizeMatch = html.match(/<meta[^>]+name=['"]ad.size['"][^>]+content=['"]width=(\d+),height=(\d+)['"]/i);
   if (sizeMatch) {
-    width = sizeMatch[1];
-    height = sizeMatch[2];
+      width = sizeMatch[1];
+      height = sizeMatch[2];
+      resultEntry.dimensions = `${width}x${height}`;
+  } else {
+      resultEntry.dimensions = 'Not found in meta tag';
   }
 
-  // ✅ Render in iframe
+
   const iframe = document.createElement("iframe");
   iframe.scrolling = "no";
-  iframe.style.overflow = "hidden";
-  iframe.style.border = "none";
-  iframe.style.display = "block";
-
-  // Use meta size if defined, else safe default so iframe shows
+  iframe.style.cssText = "overflow:hidden; border:none; display:block;";
   iframe.width = width || 970;
   iframe.height = height || 600;
-
   const blob = new Blob([updatedHtml], { type: "text/html" });
   iframe.src = URL.createObjectURL(blob);
+  // 1. Create the wrapper and overlay elements
+    const previewWrapper = document.createElement('div');
+    previewWrapper.className = 'preview-wrapper';
 
-  // Adjust size after load
-  iframe.onload = () => {
-    try {
-      const doc = iframe.contentWindow.document;
-      const w = doc.body.scrollWidth;
-      const h = doc.body.scrollHeight;
-      if (w > 0 && h > 0) {
-        iframe.width = w;
-        iframe.height = h;
-      }
-      if (landingPage) {
-        iframe.contentWindow.clickTag = landingPage;
-      }
-    } catch (e) {
-      console.warn("Iframe resize or clickTag injection failed:", e);
+    const clickOverlay = document.createElement('div');
+    clickOverlay.className = 'click-overlay';
+
+    // 2. If a landing page was found, make the overlay visible and add the click listener
+    if (landingPage) {
+        clickOverlay.style.display = 'block'; // Show the overlay
+        clickOverlay.addEventListener('click', () => {
+            window.open(landingPage, '_blank');
+        });
     }
-  };
 
-  resultsDiv.appendChild(document.createElement("hr"));
-  resultsDiv.innerHTML += "<p class='pass'>✔ Creative Preview:</p>";
-  resultsDiv.appendChild(iframe);
+    // 3. Assemble the preview: iframe and overlay go inside the wrapper
+    previewWrapper.appendChild(iframe);
+    previewWrapper.appendChild(clickOverlay);
+
+    // 4. Add the complete preview component to the results container
+    container.appendChild(document.createElement("hr"));
+    container.innerHTML += "<p class='pass'>✔ Creative Preview:</p>";
+    container.appendChild(previewWrapper);
+    
+    // --- NEW CODE LOGIC ENDS HERE ---
 }
+
+// --- Native Ad Preview Logic ---
+function updateNativePreview() {
+    const advertiser = document.getElementById('nativeAdvertiserName').value || "Your Company";
+    const headline = document.getElementById('nativeHeadline').value || "Your Catchy Headline";
+    const body = document.getElementById('nativeBody').value || "A compelling description...";
+    const cta = document.getElementById('nativeCTA').value || "Shop Now";
+    const landingPage = document.getElementById('nativeLandingPage').value || "#";
+    const displayUrl = document.getElementById('nativeDisplayURL').value || "example.com";
+    ['desktop', 'mobile'].forEach(p => {
+        document.getElementById(`${p}-advertiser`).innerText = advertiser;
+        document.getElementById(`${p}-display-url`).innerText = displayUrl;
+        document.getElementById(`${p}-headline`).innerText = headline;
+        document.getElementById(`${p}-body`).innerText = body;
+        document.getElementById(`${p}-cta`).innerText = cta;
+        document.getElementById(`${p}-cta`).href = landingPage;
+    });
+}
+['nativeAdvertiserName', 'nativeHeadline', 'nativeLongHeadline', 'nativeBody', 'nativeLongBody', 'nativeCTA', 'nativeLandingPage', 'nativeDisplayURL'].forEach(id => {
+    document.getElementById(id).addEventListener('input', updateNativePreview);
+});
+document.getElementById('nativeImage').addEventListener('change', function(event) {
+    const file = event.target.files[0];
+    if (file) {
+        const imageUrl = URL.createObjectURL(file);
+        document.getElementById('desktop-img-preview').src = imageUrl;
+        document.getElementById('mobile-img-preview').src = imageUrl;
+    }
+});
+document.getElementById('nativeLogo').addEventListener('change', function(event) {
+    const file = event.target.files[0];
+    if (file) {
+        const logoUrl = URL.createObjectURL(file);
+        document.getElementById('desktop-logo-preview').src = logoUrl;
+        document.getElementById('mobile-logo-preview').src = logoUrl;
+    }
+});
+
+
+// --- Download Functions ---
+function setDownloadStatus(elementId, message) {
+    const statusEl = document.getElementById(elementId);
+    if(statusEl) {
+        statusEl.textContent = message;
+        setTimeout(() => { statusEl.textContent = ''; }, 3000);
+    }
+}
+
+
+// --- Validator Report Download Functions ---
+function downloadValidatorCsv(filename) {
+    if (validationReportData.length === 0) {
+        alert("Please upload and validate files first.");
+        return;
+    }
+    setDownloadStatus('validator-download-status', 'Generating CSV...');
+   
+    const headers = ['File Name', 'File Type', 'Size Status', 'Dimensions', 'Aspect Ratio', 'Duration (s)', 'Click Handler', 'Landing Page', 'Revenue Impact'];
+   
+    const rows = validationReportData.map(entry => {
+        const row = [
+            entry.fileName,
+            entry.fileType,
+            entry.sizeStatus || 'N/A',
+            entry.dimensions || 'N/A',
+            entry.aspectRatio || 'N/A',
+            entry.duration || 'N/A',
+            entry.clickHandler || 'N/A',
+            entry.landingPage ? `"${entry.landingPage.replace(/"/g, '""')}"` : 'N/A',
+            entry.revenueImpactMessage ? `"${entry.revenueImpactMessage.replace(/"/g, '""')}"` : 'N/A'
+        ];
+        return row.join(',');
+    });
+
+
+    let csvContent = headers.join(',') + '\r\n' + rows.join('\r\n');
+
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", filename);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setDownloadStatus('validator-download-status', 'Downloaded!');
+}
+
+
+async function downloadValidatorPdf(filename) {
+    const { jsPDF } = window.jspdf;
+    const element = document.getElementById('results');
+    if (!element.hasChildNodes()) {
+        alert("Please upload and validate files first.");
+        return;
+    }
+    const statusId = 'validator-download-status';
+    setDownloadStatus(statusId, 'Generating PDF...');
+
+    // Convert iframes to images first
+    const iframes = element.querySelectorAll("iframe");
+    await Promise.all([...iframes].map(async iframe => {
+        try {
+            const canvas = await html2canvas(iframe.contentDocument.body, { useCORS: true, scale: 2 });
+            const imgData = canvas.toDataURL("image/png");
+            const img = document.createElement("img");
+            img.src = imgData;
+            img.style.width = iframe.style.width;
+            img.style.height = iframe.style.height;
+            iframe.replaceWith(img); // replace iframe with image
+        } catch (e) {
+            console.warn("Could not capture iframe:", e);
+        }
+    }));
+
+    // Now capture the whole results area
+    html2canvas(element, { useCORS: true, allowTaint: true, scale: 2 }).then(canvas => {
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new jsPDF({ orientation: 'p', unit: 'pt', format: 'a4' });
+
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pageHeight = pdf.internal.pageSize.getHeight();
+        const imgWidth = canvas.width;
+        const imgHeight = canvas.height;
+        const ratio = imgWidth / imgHeight;
+
+        const widthInPdf = pdfWidth - 40; // margin
+        const heightInPdf = widthInPdf / ratio;
+
+        let heightLeft = heightInPdf;
+        let position = 20;
+
+        pdf.addImage(imgData, 'PNG', 20, position, widthInPdf, heightInPdf);
+        heightLeft -= (pageHeight - 40);
+
+        while (heightLeft > 0) {
+            position = -heightLeft + 20;
+            pdf.addPage();
+            pdf.addImage(imgData, 'PNG', 20, position, widthInPdf, heightInPdf);
+            heightLeft -= pageHeight;
+        }
+
+        pdf.save(filename);
+        setDownloadStatus(statusId, 'Downloaded!');
+    }).catch(err => {
+        console.error('PDF Download Error:', err);
+        setDownloadStatus(statusId, 'Error!');
+    });
+}
+
+
+
+
+// --- Native Ad Preview Download Functions ---
+function downloadPreviewAsPng(elementId, filename) {
+    const statusId = elementId.split('-')[0] + '-download-status';
+    setDownloadStatus(statusId, 'Generating PNG...');
+    html2canvas(document.getElementById(elementId), { useCORS: true, allowTaint: true })
+    .then(canvas => {
+        const link = document.createElement('a');
+        link.download = filename;
+        link.href = canvas.toDataURL("image/png");
+        link.click();
+        setDownloadStatus(statusId, 'Downloaded!');
+    }).catch(err => {
+        console.error('PNG Download Error:', err);
+        setDownloadStatus(statusId, 'Error!');
+    });
+}
+
+
+function downloadPreviewAsPdf(elementId, filename) {
+    const { jsPDF } = window.jspdf;
+    const element = document.getElementById(elementId);
+    const statusId = elementId.split('-')[0] + '-download-status';
+    setDownloadStatus(statusId, 'Generating PDF...');
+    html2canvas(element, { useCORS: true, allowTaint: true, scale: 2 }).then(canvas => {
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new jsPDF({ orientation: canvas.width > canvas.height ? 'l' : 'p', unit: 'px', format: [canvas.width, canvas.height] });
+        pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+        pdf.save(filename);
+        setDownloadStatus(statusId, 'Downloaded!');
+    }).catch(err => {
+        console.error('PDF Download Error:', err);
+        setDownloadStatus(statusId, 'Error!');
+    });
+}
+
+
+function downloadDataAsCsv(filename) {
+    setDownloadStatus('csv-download-status', 'Generating CSV...');
+    const headers = ['Component', 'Value', 'Character Count', 'Limit', 'Status'];
+    const dataRows = [];
+    const fields = [
+        { id: 'nativeAdvertiserName', name: 'Advertiser Name'}, { id: 'nativeHeadline', name: 'Headline'},
+        { id: 'nativeLongHeadline', name: 'Long Headline'}, { id: 'nativeBody', name: 'Body Text'},
+        { id: 'nativeLongBody', name: 'Long Body Text'}, { id: 'nativeCTA', name: 'CTA'},
+        { id: 'nativeDisplayURL', name: 'Display URL'}
+    ];
+    fields.forEach(field => {
+        const el = document.getElementById(field.id);
+        const value = el.value;
+        const count = value.length;
+        const limit = el.maxLength > 0 ? el.maxLength : 'N/A';
+        const status = limit !== 'N/A' ? (count > limit ? 'Over Limit' : 'OK') : 'N/A';
+        dataRows.push([field.name, `"${value.replace(/"/g, '""')}"`, count, limit, status]);
+    });
+    dataRows.push(['Landing Page URL', `"${document.getElementById('nativeLandingPage').value.replace(/"/g, '""')}"`, 'N/A', 'N/A', 'N/A']);
+    let csvContent = headers.join(',') + '\r\n';
+    dataRows.forEach(row => { csvContent += row.join(',') + '\r\n'; });
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", filename);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setDownloadStatus('csv-download-status', 'Downloaded!');
+}
+updateNativePreview();
+
+
+async function sendImageForValidation(file, container, resultEntry) {
+    const policyContainer = document.createElement('div');
+    policyContainer.innerHTML = `<hr><p><strong>Policy & Content Safety Check:</strong></p><p class="info">Checking with Vision API...</p>`;
+    container.appendChild(policyContainer);
+
+
+
+    const formData = new FormData();
+    formData.append('image', file);
+
+
+
+    try {
+        const response = await fetch('http://127.0.0.1:8000/validate-image', {
+            method: 'POST',
+            body: formData
+        });
+
+
+
+        if (!response.ok) {
+            policyContainer.innerHTML = `<hr><p><strong>Policy & Content Safety Check:</strong></p><p class="fail">✘ Error from server: ${response.statusText}</p>`;
+            return;
+        }
+
+
+
+        const results = await response.json();
+
+
+
+        if (results.error) {
+            policyContainer.innerHTML = `<hr><p><strong>Policy & Content Safety Check:</strong></p><p class="fail">✘ API Error: ${results.error}</p>`;
+            return;
+        }
+        
+        const safeSearchCategories = ['adult', 'violence'];
+        
+        const keywordCategories = ['alcohol', 'gambling', 'dangerous_products', 'financial_products', 'healthcare_medicines', 'political_content', 'inappropriate_content'];
+
+
+
+        let flaggedResults = [];
+
+
+
+        
+        for (const category of safeSearchCategories) {
+            const likelihood = results[category];
+            if (likelihood === 'LIKELY' || likelihood === 'VERY_LIKELY') {
+                flaggedResults.push({
+                    category,
+                    status: likelihood.replace('_', ' ').toLowerCase(),
+                    type: 'fail'
+                });
+            }
+        }
+
+
+
+       
+        for (const category of keywordCategories) {
+            if (results[category] === "detected") {
+                flaggedResults.push({
+                    category,
+                    status: "detected",
+                    type: 'fail'
+                });
+            }
+        }
+
+
+
+        let validationHTML = `<hr><p><strong>Policy & Content Safety Check:</strong></p>`;
+
+
+
+        if (flaggedResults.length > 0) {
+            validationHTML += `<ul class="validation-list">`;
+            for (const item of flaggedResults) {
+                validationHTML += `
+                    <li>
+                        <span class='fail'>✘</span>
+                        <div><strong class='fail'>${item.category.charAt(0).toUpperCase() + item.category.slice(1)}:</strong> ${item.status}</div>
+                    </li>`;
+            }
+            validationHTML += `</ul>`;
+        } else {
+            validationHTML += `<p class="pass">✔ No policy violations detected</p>`;
+        }
+
+
+
+        policyContainer.innerHTML = validationHTML;
+        resultEntry.policyCheck = results; 
+
+
+
+    } catch (error) {
+        console.error('Error sending image for validation:', error);
+        policyContainer.innerHTML = `<hr><p><strong>Policy & Content Safety Check:</strong></p><p class="fail">✘ Could not connect to the validation server.</p>`;
+    }
+}
+
 </script>
 </body>
 </html>
-
