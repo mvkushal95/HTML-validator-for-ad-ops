@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -551,6 +550,24 @@ async function validateCreative(html, zip, htmlFileName, container, resultEntry)
       resultEntry.dimensions = 'Not found in meta tag';
   }
 
+  // ...inside validateCreative after extracting width/height...
+if (!width || !height) {
+    // Try to extract from <body> or main container style
+    const widthMatch = html.match(/width\s*[:=]\s*["']?(\d{2,4})px["']?/i);
+    const heightMatch = html.match(/height\s*[:=]\s*["']?(\d{2,4})px["']?/i);
+    if (widthMatch && heightMatch) {
+        width = widthMatch[1];
+        height = heightMatch[1];
+        resultEntry.dimensions = `${width}x${height}`;
+    }
+}
+
+if (width && height) {
+    container.innerHTML += `<p><strong>Dimensions:</strong> ${width}px × ${height}px</p>`;
+} else {
+    container.innerHTML += `<p><strong>Dimensions:</strong> Could not extract from HTML</p>`;
+}
+
   const iframe = document.createElement("iframe");
   iframe.scrolling = "no";
   iframe.style.cssText = "overflow:hidden; border:none; display:block;";
@@ -802,7 +819,6 @@ function downloadDataAsCsv(filename) {
     setDownloadStatus('csv-download-status', 'Downloaded!');
 }
 updateNativePreview();
-
 </script>
 </body>
 </html>
