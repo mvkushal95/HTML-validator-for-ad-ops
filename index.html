@@ -347,9 +347,41 @@ document.getElementById('fileInput').addEventListener('change', function(event) 
     const resultsArea = document.getElementById("results");
     resultsArea.innerHTML = "";
     validationReportData = []; // Clear previous report data
+    creativeFileObjects = {}; // Clear previous file objects
     document.getElementById('validator-download-controls').style.display = 'block';
     
+Array.from(files).forEach((file, index) => {
+        const uniqueId = `creative-${Date.now()}-${index}`;
+        creativeFileObjects[uniqueId] = file; // Store file object for refresh/replace
 
+        const fileContainer = document.createElement('div');
+        fileContainer.className = 'results';
+        fileContainer.id = uniqueId;
+        
+        // Create the container structure with controls
+        fileContainer.innerHTML = `
+            <h2>Results for: <span id="filename-${uniqueId}">${file.name}</span></h2>
+            <div class="creative-controls">
+                <button class="action-btn refresh-btn" onclick="refreshCreative('${uniqueId}')">Refresh</button>
+                <button class="action-btn replace-btn" onclick="triggerReplace('${uniqueId}')">Replace</button>
+                <input type="file" id="replace-input-${uniqueId}" style="display:none;" onchange="handleReplace(event, '${uniqueId}')" accept=".zip,.jpg,.jpeg,.png,.gif,.avi,.mov,.mp4,.m4v,.mpeg,.mpg,.webm,.wmv">
+            </div>
+            <div class="content-wrapper" id="content-${uniqueId}"></div>
+        `;
+        resultsArea.appendChild(fileContainer);
+        
+        // Process the file and populate the content-wrapper
+        processSingleFile(file, uniqueId);
+    });
+});
+
+// --- NEW: Function to process a single file (Refactored Logic) ---
+function processSingleFile(file, uniqueId) {
+    const contentWrapper = document.getElementById(`content-${uniqueId}`);
+    contentWrapper.innerHTML = ""; // Clear only the content area for this creative
+
+    const resultEntry = { fileName: file.name, fileType: file.type };]
+  
     const ioBudget = parseFloat(document.getElementById('ioBudget').value) || 0;
     const dailyCap = parseFloat(document.getElementById('dailyCap').value) || 0;
     const detectionDays = parseInt(document.getElementById('detectionDays').value) || 0;
@@ -430,8 +462,34 @@ document.getElementById('fileInput').addEventListener('change', function(event) 
     }
 });
 
+// --- NEW: Helper functions for Refresh and Replace ---
+function refreshCreative(uniqueId) {
+    const file = creativeFileObjects[uniqueId];
+    if (file) {
+        processSingleFile(file, uniqueId);
+    }
+}
 
+function triggerReplace(uniqueId) {
+    document.getElementById(`replace-input-${uniqueId}`).click();
+}
 
+function handleReplace(event, uniqueId) {
+    const newFile = event.target.files[0];
+    if (!newFile) return;
+
+    // Update the stored file object
+    creativeFileObjects[uniqueId] = newFile;
+
+    // Update the filename in the header
+    document.getElementById(`filename-${uniqueId}`).textContent = newFile.name;
+
+    // Process the new file
+    processSingleFile(newFile, uniqueId);
+
+    // Clear the file input to allow re-uploading the same file if needed
+    event.target.value = ''; 
+}
 
 function handleVideoFile(file, container, resultEntry) {
     const statusMsg = container.querySelector('.processing-status');
@@ -847,6 +905,7 @@ updateNativePreview();
 </script>
 </body>
 </html>
+
 
 
 
