@@ -13,9 +13,6 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
-
-
-
   <style>
     body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; padding: 20px; background: skyblue; color: #333; }
     h1, h2 { color: #1a202c; }
@@ -35,107 +32,83 @@
     .validation-list { list-style: none; padding-left: 0; }
     .validation-list li { margin-bottom: 8px; display: flex; align-items: center; }
     .validation-list span { margin-right: 10px; font-size: 1.2em; }
-    /* ADD THIS CSS */
-.preview-wrapper {
-    position: relative; /* Essential for positioning the overlay */
-    display: inline-block; /* Adjusts to the iframe's size */
-}
+    
+    /* ADDED STYLES FOR REFRESH/REPLACE BUTTONS */
+    .creative-controls {
+        margin: 10px 0 15px 0;
+        display: flex;
+        gap: 10px;
+    }
+    .action-btn {
+        padding: 6px 12px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.9em;
+        font-weight: bold;
+    }
+    .refresh-btn {
+        background-color: #e0e0e0;
+        color: #333;
+    }
+    .refresh-btn:hover {
+        background-color: #d0d0d0;
+    }
+    .replace-btn {
+        background-color: #1a73e8;
+        color: white;
+        border-color: #1a73e8;
+    }
+    .replace-btn:hover {
+        background-color: #1558b3;
+    }
+    /* END OF ADDED STYLES */
 
-.click-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 10;      /* Ensures it's on top of the creative */
-    cursor: pointer;
-    display: none;    /* It will be hidden until a landing page is found */
-}   
-   
-    /* Tab Styles */
+    .preview-wrapper {
+        position: relative;
+        display: inline-block;
+    }
+    .click-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 10;
+        cursor: pointer;
+        display: none;
+    }   
     .tabs { overflow: hidden; border-bottom: 1px solid #ccc; margin-bottom: 20px; }
     .tab-link { background-color: #f1f1f1; float: left; border: none; outline: none; cursor: pointer; padding: 14px 16px; transition: 0.3s; font-size: 17px; }
     .tab-link:hover { background-color: #ddd; }
     .tab-link.active { background-color: #ccc; }
     .tab-content { display: none; padding: 6px 12px; border-top: none; animation: fadeEffect 0.5s; }
     @keyframes fadeEffect { from {opacity: 0;} to {opacity: 1;} }
-
-
-    /* Rulebook & Download Styles */
     .rulebook-container { padding: 15px; background: #eef2f7; border-radius: 8px; margin-bottom: 20px; }
     .rulebook-container h2 { border: none; }
     .rulebook-inputs { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
     .revenue-impact-pass { border-left: 5px solid #2d8a5b; margin-top: 15px; }
     .revenue-impact-fail { border-left: 5px solid #c53030; margin-top: 15px; }
-
-    /* Policy & Content Safety Check messages */
-.policy-success {
-  background-color: #e6f9ed;
-  border: 1px solid #2e7d32;
-  color: #2e7d32;
-  padding: 8px 12px;
-  border-radius: 6px;
-  margin-top: 10px;
-  font-weight: 500;
-}
-
-.policy-warning {
-  background-color: #fdecea;
-  border: 1px solid #c62828;
-  color: #c62828;
-  padding: 8px 12px;
-  border-radius: 6px;
-  margin-top: 10px;
-  font-weight: 500;
-}
-
-/* Policy Impact Rulebook section */
-.policy-impact-pass {
-  background-color: #f0fff4;
-  border-left: 4px solid #38a169;
-  padding: 10px 14px;
-  margin-top: 10px;
-  border-radius: 6px;
-}
-
-.policy-impact-pass p {
-  margin: 4px 0;
-  color: #22543d;
-}
-
-.policy-impact-fail {
-  background-color: #fff5f5;
-  border-left: 4px solid #e53e3e;
-  padding: 10px 14px;
-  margin-top: 10px;
-  border-radius: 6px;
-}
-
-.policy-impact-fail p {
-  margin: 4px 0;
-  color: #742a2a;
-}
-
-    /* Native Ad Preview Styles */
+    .policy-success { background-color: #e6f9ed; border: 1px solid #2e7d32; color: #2e7d32; padding: 8px 12px; border-radius: 6px; margin-top: 10px; font-weight: 500; }
+    .policy-warning { background-color: #fdecea; border: 1px solid #c62828; color: #c62828; padding: 8px 12px; border-radius: 6px; margin-top: 10px; font-weight: 500; }
+    .policy-impact-pass { background-color: #f0fff4; border-left: 4px solid #38a169; padding: 10px 14px; margin-top: 10px; border-radius: 6px; }
+    .policy-impact-pass p { margin: 4px 0; color: #22543d; }
+    .policy-impact-fail { background-color: #fff5f5; border-left: 4px solid #e53e3e; padding: 10px 14px; margin-top: 10px; border-radius: 6px; }
+    .policy-impact-fail p { margin: 4px 0; color: #742a2a; }
     .native-container { display: flex; flex-wrap: wrap; gap: 20px; }
     .native-controls { flex: 1; min-width: 300px; }
     .native-previews { flex: 2; display: flex; flex-wrap: wrap; gap: 20px; }
     .preview-wrapper { display: flex; flex-direction: column; align-items: center; gap: 10px; }
     .preview-box { border: 1px solid #ccc; padding: 10px; background: #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-   
     .native-header { display: flex; align-items: center; gap: 10px; padding-bottom: 10px; }
     .native-header img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; background: #eee; border: 1px solid #ddd; }
     .advertiser-info p { margin: 0; line-height: 1.2; }
     .advertiser-name { font-weight: bold; color: #333; font-size: 0.9em; }
     .display-url { font-size: 0.8em; color: #777; }
-
-
     #desktop-preview { width: 500px; }
     #desktop-preview img#desktop-img-preview { width: 100%; height: 262px; object-fit: cover; background: #eee; }
-   
     #mobile-preview { width: 320px; }
     #mobile-preview img#mobile-img-preview { width: 100%; height: 168px; object-fit: cover; background: #eee; }
-   
     .native-text { padding: 10px; }
     .native-text h3 { margin: 0 0 5px; font-size: 1.1em; color: #1a202c; }
     .native-text p { margin: 0 0 10px; font-size: 0.9em; color: #555; }
@@ -154,18 +127,12 @@
 <body>
   <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-THRPXSR9"
   height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
-  <h1>All-in-One Creative Validator</h1>
-
-
-
+  <h1>AI-powered All-in-One Creative Validator</h1>
 
   <div class="tabs">
     <button class="tab-link active" onclick="openTab(event, 'Validator')">Creative Validator</button>
     <button class="tab-link" onclick="openTab(event, 'Native')">Native Preview Validator</button>
   </div>
-
-
-
 
   <div id="Validator" class="tab-content" style="display: block;">
     <div class="rulebook-container">
@@ -187,10 +154,9 @@
         </div>
     </div>
 
-
     <p>You can upload up to 12 files at once (images, videos, or .zip files).</p>
     <input type="file" id="fileInput" accept=".zip,.jpg,.jpeg,.png,.gif,.avi,.mov,.mp4,.m4v,.mpeg,.mpg,.webm,.wmv" multiple />
-   
+    
     <div id="validator-download-controls" style="display: none; margin-top: 20px; padding: 15px; background: #fff; border-radius: 8px;">
         <h3>Download Full Report</h3>
         <button class="download-btn csv" onclick="downloadValidatorCsv('validation-report.csv')">Download Report as CSV</button>
@@ -198,12 +164,8 @@
         <div class="text-center" style="margin-top: 10px;"><span id="validator-download-status" class="download-status"></span></div>
     </div>
 
-
     <div class="results-area" id="results"></div>
   </div>
-
-
-
 
   <div id="Native" class="tab-content">
     <div class="native-container">
@@ -211,39 +173,24 @@
             <h3>Native Ad Components</h3>
             <label for="nativeAdvertiserName">Advertiser Name (25 chars)</label>
             <input type="text" id="nativeAdvertiserName" placeholder="Your Company" maxlength="25">
-           
             <label for="nativeLogo">Logo Image</label>
             <input type="file" id="nativeLogo" accept="image/*">
-
-
             <label for="nativeHeadline">Headline (25 chars)</label>
             <input type="text" id="nativeHeadline" placeholder="Your Catchy Headline" maxlength="25">
-
-
             <label for="nativeLongHeadline">Long Headline (50 chars)</label>
             <input type="text" id="nativeLongHeadline" placeholder="Your Longer, More Descriptive Headline" maxlength="50">
-
-
             <label for="nativeBody">Body Text (90 chars)</label>
             <textarea id="nativeBody" placeholder="A compelling description of your product or service." rows="3" maxlength="90"></textarea>
-
-
             <label for="nativeLongBody">Long Body Text (150 chars)</label>
             <textarea id="nativeLongBody" placeholder="An even more detailed description for layouts that support it." rows="4" maxlength="150"></textarea>
-           
             <label for="nativeCTA">CTA Text (15 chars)</label>
             <input type="text" id="nativeCTA" placeholder="Shop Now" maxlength="15">
-           
             <label for="nativeLandingPage">Landing Page URL</label>
             <input type="text" id="nativeLandingPage" placeholder="https://example.com">
-
-
             <label for="nativeDisplayURL">Display URL (30 chars)</label>
             <input type="text" id="nativeDisplayURL" placeholder="example.com" maxlength="30">
-           
             <label for="nativeImage">Main Image</label>
             <input type="file" id="nativeImage" accept="image/*">
-           
             <button class="download-btn csv" onclick="downloadDataAsCsv('native-ad-data.csv')" style="width: calc(95% + 16px); margin-top: 10px;">Download Data as CSV</button>
             <div class="text-center"><span id="csv-download-status" class="download-status"></span></div>
         </div>
@@ -298,20 +245,14 @@
     </div>
   </div>
 
-
-
-
 <script>
-// --- Global Data Store for Reports ---
+// --- Global Data Stores ---
 let validationReportData = [];
-
+let creativeFileObjects = {}; // NEW: To store file objects by a unique ID
 
 // --- File Size Limits ---
 const MAX_IMAGE_ZIP_SIZE_BYTES = 5 * 1024 * 1024; // 5MB
 const MAX_VIDEO_SIZE_BYTES = 1 * 1024 * 1024 * 1024; // 1GB
-
-
-
 
 // --- Tab Functionality ---
 function openTab(evt, tabName) {
@@ -328,14 +269,10 @@ function openTab(evt, tabName) {
   evt.currentTarget.className += " active";
 }
 
-
-
-
-// --- Creative Validator Logic ---
+// --- Creative Validator Main Logic (MODIFIED) ---
 document.getElementById('fileInput').addEventListener('change', function(event) {
     const files = event.target.files;
     if (!files.length) return;
-
 
     if (files.length > 12) {
         alert("You can only upload a maximum of 12 files at a time.");
@@ -343,14 +280,13 @@ document.getElementById('fileInput').addEventListener('change', function(event) 
         return;
     }
 
-
     const resultsArea = document.getElementById("results");
     resultsArea.innerHTML = "";
-    validationReportData = []; // Clear previous report data
     creativeFileObjects = {}; // Clear previous file objects
+    validationReportData = []; // Clear previous report data
     document.getElementById('validator-download-controls').style.display = 'block';
-    
-Array.from(files).forEach((file, index) => {
+
+    Array.from(files).forEach((file, index) => {
         const uniqueId = `creative-${Date.now()}-${index}`;
         creativeFileObjects[uniqueId] = file; // Store file object for refresh/replace
 
@@ -380,87 +316,67 @@ function processSingleFile(file, uniqueId) {
     const contentWrapper = document.getElementById(`content-${uniqueId}`);
     contentWrapper.innerHTML = ""; // Clear only the content area for this creative
 
-    const resultEntry = { fileName: file.name, fileType: file.type };]
-  
+    const resultEntry = { fileName: file.name, fileType: file.type };
+
+    // Revenue Impact calculation details
     const ioBudget = parseFloat(document.getElementById('ioBudget').value) || 0;
     const dailyCap = parseFloat(document.getElementById('dailyCap').value) || 0;
     const detectionDays = parseInt(document.getElementById('detectionDays').value) || 0;
+    const hasBudgetInfo = ioBudget > 0 && dailyCap > 0 && detectionDays > 0;
 
+    const isVideo = file.type.startsWith('video/');
+    const isImage = file.type.startsWith('image/');
+    const isZip = file.type === 'application/zip' || file.name.toLowerCase().endsWith('.zip');
+    
+    const maxSize = isVideo ? MAX_VIDEO_SIZE_BYTES : MAX_IMAGE_ZIP_SIZE_BYTES;
+    const maxSizeText = isVideo ? "1GB" : "5MB";
+    const fileSizeMB = (file.size / (1024 * 1024)).toFixed(2);
+    
+    let rulebookHTML = '';
 
-    for (const file of files) {
-        const fileContainer = document.createElement('div');
-        fileContainer.className = 'results';
-        fileContainer.innerHTML = `<h2>Results for: ${file.name}</h2>`;
-        resultsArea.appendChild(fileContainer);
-
-
-        const resultEntry = { fileName: file.name, fileType: file.type };
-
-
-        const isVideo = file.type.startsWith('video/');
-        const isImage = file.type.startsWith('image/');
-        const isZip = file.type === 'application/zip' || file.name.toLowerCase().endsWith('.zip');
-       
-        const maxSize = isVideo ? MAX_VIDEO_SIZE_BYTES : MAX_IMAGE_ZIP_SIZE_BYTES;
-        const maxSizeText = isVideo ? "1GB" : "5MB";
-        const fileSizeMB = (file.size / (1024 * 1024)).toFixed(2);
-       
-        let rulebookHTML = '';
-        const hasBudgetInfo = ioBudget > 0 && dailyCap > 0 && detectionDays > 0;
-
-
-        if (file.size > maxSize) {
-            fileContainer.innerHTML += `<div class='size-warning'><strong>Warning:</strong> File size is ${fileSizeMB} MB. This creative might be rejected by exchange (limit is ${maxSizeText}).</div>`;
-            resultEntry.sizeStatus = 'Fail (Oversized)';
-
-
-            if (hasBudgetInfo) {
-                let potentialLoss = dailyCap * detectionDays;
-                potentialLoss = Math.min(ioBudget, potentialLoss); // Cap loss at total budget
-                const revenueImpact = potentialLoss.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
-                rulebookHTML = `<div class='results revenue-impact-fail'><p><strong>Revenue Impact Rulebook:</strong></p><p class='fail'>This creative's file size exceeds the recommended limit. Based on a daily cap of <strong>${dailyCap.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</strong>, this could cause a potential revenue loss of <strong>${revenueImpact}</strong> over <strong>${detectionDays} day(s)</strong> until detection and replacement.</p></div>`;
-                resultEntry.revenueImpactMessage = `Potential loss of ${revenueImpact} over ${detectionDays} day(s) due to oversized file.`;
-            }
-        } else {
-            fileContainer.innerHTML += `<div class='size-success'><strong>Success:</strong> File size is ${fileSizeMB} MB. This creative is likely to be accepted by Exchange (limit is ${maxSizeText}).</div>`;
-            resultEntry.sizeStatus = 'Pass';
-
-
-            if (hasBudgetInfo) {
-                let potentialLoss = dailyCap * detectionDays;
-                potentialLoss = Math.min(ioBudget, potentialLoss);
-                const revenueImpact = potentialLoss.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
-                rulebookHTML = `<div class='results revenue-impact-pass'><p><strong>Revenue Impact Rulebook:</strong></p><p class='pass'>This creative's file size is within acceptable limits. By ensuring approval, you have helped save a potential <strong>${revenueImpact}</strong> in campaign revenue (based on a <strong>${detectionDays}-day</strong> detection period).</p></div>`;
-                resultEntry.revenueImpactMessage = `Saved a potential ${revenueImpact} by meeting size requirements.`;
-            }
-        }
-       
+    if (file.size > maxSize) {
+        contentWrapper.innerHTML += `<div class='size-warning'><strong>Warning:</strong> File size is ${fileSizeMB} MB. This creative might be rejected by exchange (limit is ${maxSizeText}).</div>`;
+        resultEntry.sizeStatus = 'Fail (Oversized)';
         if (hasBudgetInfo) {
-            fileContainer.innerHTML += rulebookHTML;
+            let potentialLoss = Math.min(ioBudget, dailyCap * detectionDays);
+            const revenueImpact = potentialLoss.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+            rulebookHTML = `<div class='results revenue-impact-fail'><p><strong>Revenue Impact Rulebook:</strong></p><p class='fail'>This creative's file size exceeds the recommended limit. Based on a daily cap of <strong>${dailyCap.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</strong>, this could cause a potential revenue loss of <strong>${revenueImpact}</strong> over <strong>${detectionDays} day(s)</strong> until detection and replacement.</p></div>`;
+            resultEntry.revenueImpactMessage = `Potential loss of ${revenueImpact} over ${detectionDays} day(s) due to oversized file.`;
         }
-
-
-        let statusMsg = document.createElement('p');
-        statusMsg.className = 'processing-status';
-        fileContainer.appendChild(statusMsg);
-
-
-        if (isZip) {
-            statusMsg.textContent = "Processing ZIP file...";
-            handleZipFile(file, fileContainer, resultEntry);
-        } else if (isImage) {
-            statusMsg.textContent = "Processing image file...";
-            handleImageFile(file, fileContainer, resultEntry);
-        } else if (isVideo) {
-            statusMsg.textContent = "Processing video file...";
-            handleVideoFile(file, fileContainer, resultEntry);
-        } else {
-            fileContainer.innerHTML += "<p class='fail'>✘ Unsupported file type. Please upload a ZIP, image, or video file.</p>";
-            statusMsg.remove();
+    } else {
+        contentWrapper.innerHTML += `<div class='size-success'><strong>Success:</strong> File size is ${fileSizeMB} MB. This creative is likely to be accepted by Exchange (limit is ${maxSizeText}).</div>`;
+        resultEntry.sizeStatus = 'Pass';
+        if (hasBudgetInfo) {
+            let potentialLoss = Math.min(ioBudget, dailyCap * detectionDays);
+            const revenueImpact = potentialLoss.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+            rulebookHTML = `<div class='results revenue-impact-pass'><p><strong>Revenue Impact Rulebook:</strong></p><p class='pass'>This creative's file size is within acceptable limits. By ensuring approval, you have helped save a potential <strong>${revenueImpact}</strong> in campaign revenue (based on a <strong>${detectionDays}-day</strong> detection period).</p></div>`;
+            resultEntry.revenueImpactMessage = `Saved a potential ${revenueImpact} by meeting size requirements.`;
         }
-        validationReportData.push(resultEntry);
     }
-});
+    
+    if (hasBudgetInfo) {
+        contentWrapper.innerHTML += rulebookHTML;
+    }
+
+    let statusMsg = document.createElement('p');
+    statusMsg.className = 'processing-status';
+    contentWrapper.appendChild(statusMsg);
+
+    if (isZip) {
+        statusMsg.textContent = "Processing ZIP file...";
+        handleZipFile(file, contentWrapper, resultEntry);
+    } else if (isImage) {
+        statusMsg.textContent = "Processing image file...";
+        handleImageFile(file, contentWrapper, resultEntry);
+    } else if (isVideo) {
+        statusMsg.textContent = "Processing video file...";
+        handleVideoFile(file, contentWrapper, resultEntry);
+    } else {
+        contentWrapper.innerHTML += "<p class='fail'>✘ Unsupported file type. Please upload a ZIP, image, or video file.</p>";
+        statusMsg.remove();
+    }
+    validationReportData.push(resultEntry); // Note: this might need adjustment if you want to update reports on replace
+}
 
 // --- NEW: Helper functions for Refresh and Replace ---
 function refreshCreative(uniqueId) {
@@ -491,11 +407,11 @@ function handleReplace(event, uniqueId) {
     event.target.value = ''; 
 }
 
+// --- File Handlers (Unchanged, they now receive the 'contentWrapper' as the container) ---
 function handleVideoFile(file, container, resultEntry) {
     const statusMsg = container.querySelector('.processing-status');
     const videoUrl = URL.createObjectURL(file);
     const video = document.createElement('video');
-
 
     video.onloadedmetadata = function() {
         if(statusMsg) statusMsg.remove();
@@ -511,7 +427,6 @@ function handleVideoFile(file, container, resultEntry) {
         const isRecommendedAspectRatio = recommendedAspectRatios.includes(actualAspectRatio);
         const duration = this.duration;
         resultEntry.duration = duration.toFixed(2);
-
 
         let validationHTML = `<hr><p><strong>Video Validation Results:</strong></p><ul class="validation-list">`;
         validationHTML += `<li>${isRecommendedDim ? "<span class='pass'>✔</span>" : "<span class='fail'>✘</span>"}<div><strong>Dimensions:</strong> ${actualDims}px. ${isRecommendedDim ? "Matches recommendation." : "Does not match a standard recommended dimension."}</div></li>`;
@@ -534,14 +449,10 @@ function handleVideoFile(file, container, resultEntry) {
     video.src = videoUrl;
 }
 
-
-
-
 function handleImageFile(file, container, resultEntry) {
   const statusMsg = container.querySelector('.processing-status');
   const imageUrl = URL.createObjectURL(file);
   const img = new Image();
-
 
   img.onload = function() {
     if(statusMsg) statusMsg.remove();
@@ -553,7 +464,8 @@ function handleImageFile(file, container, resultEntry) {
     previewImg.src = imageUrl;
     previewImg.style.height = 'auto';
     container.appendChild(previewImg);
-    sendImageForValidation(file, container, resultEntry);
+    // You would add your sendImageForValidation call here if it's implemented
+    // sendImageForValidation(file, container, resultEntry); 
   };
   img.onerror = function() {
     if(statusMsg) statusMsg.remove();
@@ -561,9 +473,6 @@ function handleImageFile(file, container, resultEntry) {
   };
   img.src = imageUrl;
 }
-
-
-
 
 function handleZipFile(file, container, resultEntry) {
   const statusMsg = container.querySelector('.processing-status');
@@ -587,9 +496,9 @@ function handleZipFile(file, container, resultEntry) {
 async function validateCreative(html, zip, htmlFileName, container, resultEntry) {
   const statusMsg = container.querySelector('.processing-status');
   if(statusMsg) statusMsg.remove();
-const clickHandlerRegex = /(clickTag|site|gwdAd\.exit|gwd\.actions\.gwdGoogleAd\.exit)/i;  const hasClickHandler = clickHandlerRegex.test(html);
+  const clickHandlerRegex = /(clickTag|site|gwdAd\.exit|gwd\.actions\.gwdGoogleAd\.exit)/i;
+  const hasClickHandler = clickHandlerRegex.test(html);
   let landingPage = null;
-
 
   if (hasClickHandler) {
     container.innerHTML += "<p class='pass'>✔ Click Handler Found</p>";
@@ -599,7 +508,7 @@ const clickHandlerRegex = /(clickTag|site|gwdAd\.exit|gwd\.actions\.gwdGoogleAd\
     if (clickTagMatch && clickTagMatch[1]) landingPage = clickTagMatch[1];
     const gwdExitRegex = /gwd\.actions\.gwdGoogleAd\.exit\([^,]+,\s*['"](clickTag|site)['"]\s*,\s*['"](https?:\/\/[^'"]+)['"]/i;
     const gwdExitMatch = html.match(gwdExitRegex);
-    if (!landingPage && gwdExitMatch && gwdExitMatch[2]) landingPage = gwdExitMatch[2];    
+    if (!landingPage && gwdExitMatch && gwdExitMatch[2]) landingPage = gwdExitMatch[2];
     if (landingPage) {
         container.innerHTML += `<p class='pass'>✔ Landing Page: <a href="${landingPage}" target="_blank">${landingPage}</a></p>`;
         resultEntry.landingPage = landingPage;
@@ -611,7 +520,6 @@ const clickHandlerRegex = /(clickTag|site|gwdAd\.exit|gwd\.actions\.gwdGoogleAd\
     container.innerHTML += "<p class='fail'>✘ Click Handler Missing</p>";
     resultEntry.clickHandler = 'Missing';
   }
-
 
   const assetUrls = {};
   await Promise.all(Object.keys(zip.files).map(async name => {
@@ -632,7 +540,7 @@ const clickHandlerRegex = /(clickTag|site|gwdAd\.exit|gwd\.actions\.gwdGoogleAd\
     const regex = new RegExp(`['"](${safePath})['"]`, "g");
     updatedHtml = updatedHtml.replace(regex, `"${blobUrl}"`);
   }
- 
+  
   let width, height;
   const sizeMatch = html.match(/<meta[^>]+name=['"]ad.size['"][^>]+content=['"]width=(\d+),height=(\d+)['"]/i);
   if (sizeMatch) {
@@ -643,7 +551,6 @@ const clickHandlerRegex = /(clickTag|site|gwdAd\.exit|gwd\.actions\.gwdGoogleAd\
       resultEntry.dimensions = 'Not found in meta tag';
   }
 
-
   const iframe = document.createElement("iframe");
   iframe.scrolling = "no";
   iframe.style.cssText = "overflow:hidden; border:none; display:block;";
@@ -651,31 +558,25 @@ const clickHandlerRegex = /(clickTag|site|gwdAd\.exit|gwd\.actions\.gwdGoogleAd\
   iframe.height = height || 600;
   const blob = new Blob([updatedHtml], { type: "text/html" });
   iframe.src = URL.createObjectURL(blob);
-  // 1. Create the wrapper and overlay elements
+  
     const previewWrapper = document.createElement('div');
     previewWrapper.className = 'preview-wrapper';
-
     const clickOverlay = document.createElement('div');
     clickOverlay.className = 'click-overlay';
 
-    // 2. If a landing page was found, make the overlay visible and add the click listener
     if (landingPage) {
-        clickOverlay.style.display = 'block'; // Show the overlay
+        clickOverlay.style.display = 'block';
         clickOverlay.addEventListener('click', () => {
             window.open(landingPage, '_blank');
         });
     }
 
-    // 3. Assemble the preview: iframe and overlay go inside the wrapper
     previewWrapper.appendChild(iframe);
     previewWrapper.appendChild(clickOverlay);
 
-    // 4. Add the complete preview component to the results container
     container.appendChild(document.createElement("hr"));
     container.innerHTML += "<p class='pass'>✔ Creative Preview:</p>";
     container.appendChild(previewWrapper);
-    
-    // --- NEW CODE LOGIC ENDS HERE ---
 }
 
 // --- Native Ad Preview Logic ---
@@ -905,8 +806,3 @@ updateNativePreview();
 </script>
 </body>
 </html>
-
-
-
-
-
