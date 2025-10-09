@@ -13,8 +13,6 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.7.1/jszip.min.js?v=20250908"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/prebid.js@latest/dist/prebid.js"></script>
-  <script async src="https://securepubads.g.doubleclick.net/tag/js/gpt.js"></script>
   <style>
     body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; padding: 20px; background: skyblue; color: #333; }
     h1, h2 { color: #1a202c; }
@@ -137,9 +135,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <button class="tab-link active" onclick="openTab(event, 'Validator')">Creative Validator</button>
     <button class="tab-link" onclick="openTab(event, 'Native')">Native Preview Validator</button>
   </div>
-<div id="div-gpt-ad-001" style="width:300px; height:250px; border:1px solid #ccc;">
-  <p>Ad will load here...</p>
-</div>
   <div id="Validator" class="tab-content" style="display: block;">
     <div class="rulebook-container">
         <h2>Revenue Impact Rulebook</h2>
@@ -279,39 +274,6 @@ window.googletag = window.googletag || { cmd: [] };
       googletag.defineSlot('/1234567/adunit', [300, 250], 'div-gpt-ad-001')
                .addService(googletag.pubads());
       googletag.enableServices();
-    });
-
-    // Initialize Prebid
-    var pbjs = pbjs || {};
-    pbjs.que = pbjs.que || [];
-
-    pbjs.que.push(function() {
-      var adUnits = [{
-        code: 'div-gpt-ad-001',
-        mediaTypes: {
-          banner: { sizes: [[300, 250]] }
-        },
-        bids: [{
-          bidder: 'appnexus',
-          params: { placementId: '13144370' } // demo placement ID
-        }]
-      }];
-
-      pbjs.addAdUnits(adUnits);
-      pbjs.requestBids({
-        bidsBackHandler: function() {
-          pbjs.setTargetingForGPTAsync();
-          googletag.pubads().refresh();
-        }
-      });
-    });
-
-    // You can log Prebid events to console to learn how bidding flows
-    pbjs.onEvent('bidResponse', function(bid) {
-      console.log('Bid received:', bid);
-    });
-    pbjs.onEvent('auctionEnd', function() {
-      console.log('Auction ended, targeting set.');
     });
 // --- Creative Validator Main Logic (MODIFIED) ---
 document.getElementById('fileInput').addEventListener('change', function(event) {
@@ -867,6 +829,7 @@ updateNativePreview();
 </script>
 </body>
 </html>
+
 
 
 
